@@ -15,10 +15,11 @@ controller.spawn({
 // user management:
 // join
 controller.hears('join', 'direct_mention', function(bot, message) {
-  bot.api.users.info({user: message.user}, function(err, user) {
+  bot.api.users.info({user: message.user}, function(err, res) {
     if(err) {
       return bot.reply(message, 'Oops! I wasn\'t able to add you right now, maybe try again in a minute');
     }
+    var user = res.user;
     users.add(user);
     bot.reply(message, 'You\'re on the roster ' + user.name + ' :thumbsup:');
   });
