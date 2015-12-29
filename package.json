@@ -1,0 +1,33 @@
+{
+  "name": "slack-standup-bot",
+  "version": "0.0.1",
+  "description": "Standup Bot for Slack",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "bot": "node bot/bot.js",
+    "web": "node site/server.js"
+  },
+  "engines": {
+    "node": "0.12.7"
+  },
+  "keywords": [
+    "Slack",
+    "Standup"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/colestrode/botkit-cah.git"
+  },
+  "bugs": {
+    "url": "https://github.com/colestrode/slack-standup-bot/issues"
+  },
+  "homepage": "https://github.com/colestrode/slack-standup-bot#readme",
+  "author": "Cole Furfaro-Strode",
+  "license": "ISC",
+  "dependencies": {
+    "botkit": "0.0.5",
+    "express": "^4.13.3",
+    "lodash": "^3.10.1"
+  }
+}
