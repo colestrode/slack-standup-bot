@@ -8,7 +8,8 @@ module.exports.add = function(user) {
 };
 
 module.exports.remove = function(userId) {
-  _.remove(users, {id: userId});
+  var removed = _.remove(users, {id: userId});
+  return removed.length ? removed[0] : undefined;
 };
 
 module.exports.list = function() {

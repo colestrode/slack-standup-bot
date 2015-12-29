@@ -23,10 +23,18 @@ controller.hears('join', 'direct_mention', function(bot, message) {
     users.add(user);
     bot.reply(message, 'You\'re on the roster ' + user.name + ' :thumbsup:');
   });
-
 });
 
 // leave
+controller.hears(['leave', 'quit'], 'direct_mention', function(bot, message) {
+  var user = users.remove(message.user);
+  if (user) {
+    bot.reply(message, user.name + ' has left the team. Sorry to see you go!')
+  } else {
+    bot.reply(message, 'Um, this is awkward, but you weren\'t on the team to begin with :grimmace:');
+  }
+});
+
 // kick/remove
 
 // standup admin:
@@ -35,7 +43,13 @@ controller.hears('join', 'direct_mention', function(bot, message) {
 
 // list participants
 controller.hears(['list', 'participants', 'members'], 'direct_mention', function(bot, message) {
-  bot.reply(message, 'Current members: ' + _.pluck(users.list(), 'name').join(', '));
+  var users = _.pluck(users.list(), 'name');
+
+  if (!users.length) {
+    bot.reply(message, 'Nobody! I\'m all alone! :crying_cat_face:');
+  } else {
+    bot.reply(message, 'Current members: ' + _.pluck(users.list(), 'name').join(', '));
+  }
 });
 
 // skip (current user)
