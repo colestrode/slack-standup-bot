@@ -23,13 +23,19 @@ controller.hears('join', 'direct_mention', function(bot, message) {
   });
 
 });
+
 // leave
 // kick/remove
 
 // standup admin:
 // start
 // stop (have auto-stop when reach last user)
+
 // list participants
+controller.hears(['list', 'participants', 'members'], 'direct_mention', function(bot, message) {
+  bot.reply(message, 'Current members: ' + _.pluck(users.list(), 'name').join(', '));
+});
+
 // skip (current user)
 
 
