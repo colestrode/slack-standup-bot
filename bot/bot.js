@@ -1,4 +1,5 @@
 var Botkit = require('botkit')
+  , _ = require('lodash')
   , users = require('./model/users')
   , controller;
 
