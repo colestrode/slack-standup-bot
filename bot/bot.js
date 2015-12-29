@@ -3,7 +3,7 @@ var Botkit = require('botkit')
   , controller;
 
 controller = Botkit.slackbot({
-  debug: false
+  debug: true
 });
 
 // connect the bot to a stream of messages
