@@ -1,4 +1,4 @@
-var Botkit = require('Botkit')
+var Botkit = require('botkit')
   , users = require('./model/users')
   , controller;
 
