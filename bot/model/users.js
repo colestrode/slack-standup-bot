@@ -35,16 +35,6 @@ module.exports.remove = function(userId) {
   return q(removedUser.length ? removedUser[0] : undefined);
 };
 
-module.exports.removeUserByName = function(username) {
-  var user = _.find(users, {name: username});
-
-  if(!user) {
-    return q();
-  }
-
-  return module.exports.remove(user.id);
-};
-
 module.exports.list = function() {
   return q(users);
 };
