@@ -26,7 +26,7 @@ module.exports.remove = function(userId) {
 
   // TODO update persisted ID's
 
-  return q(removed.length ? removedUser[0] : undefined);
+  return q(removedUser.length ? removedUser[0] : undefined);
 };
 
 module.exports.list = function() {

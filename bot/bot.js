@@ -13,9 +13,10 @@ controller.spawn({
 }).startRTM();
 
 // user management:
+
 // join
 controller.hears('join', 'direct_mention', function(bot, message) {
-  return userModel.add(bot, message.user)
+  return usersModel.add(bot, message.user)
     .then(function(user) {
       bot.reply(message, 'You\'re on the roster ' + user.name + ' :thumbsup:');
     })
@@ -27,7 +28,7 @@ controller.hears('join', 'direct_mention', function(bot, message) {
 
 // leave
 controller.hears(['leave', 'quit'], 'direct_mention', function(bot, message) {
-  usersModel.remove(message.user)
+  usersModelre.remove(message.user)
     .then(function(user) {
       if (user) {
         bot.reply(message, user.name + ' has left the team. Sorry to see you go!')
@@ -38,7 +39,7 @@ controller.hears(['leave', 'quit'], 'direct_mention', function(bot, message) {
 });
 
 // kick/remove
-controller.hears(['kick'], 'direct_mention', function(bot, message) {
+controller.hears(['kick (.*)'], 'direct_mention', function(bot, message) {
   console.log(message);
 });
 
@@ -49,13 +50,14 @@ controller.hears(['kick'], 'direct_mention', function(bot, message) {
 
 // list participants
 controller.hears(['list', 'participants', 'members'], 'direct_mention', function(bot, message) {
-  var users = _.pluck(usersModel.list(), 'name');
-
-  if (!users.length) {
-    bot.reply(message, 'Nobody! I\'m all alone! :crying_cat_face:');
-  } else {
-    bot.reply(message, 'Current members: ' + users.join(', '));
-  }
+  usersModel.list()
+    .then(function(users) {
+      if (!users.length) {
+        bot.reply(message, 'Nobody! I\'m all alone! :crying_cat_face:');
+      } else {
+        bot.reply(message, 'Current members: ' + _.pluck(users, 'name').join(', '));
+      }
+    });
 });
 
 // skip (current user)
