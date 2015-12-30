@@ -60,15 +60,12 @@ controller.hears(['kick (.*)', 'remove (.*)'], 'direct_mention', function(bot, m
   }
 
   promise.then(function(user) {
-      if (user) {
-        bot.reply(message, user.name + ' has been removed from the team. Sorry to see them go!')
-      } else {
-        bot.reply(message, 'Um, this is awkward, but ' + userId + ' isn\'t on the team :grimacing:');
-      }
-    })
-    .fail(function (err) {
-      console.log('error kicking', userId, err);
-    });
+    if (user) {
+      bot.reply(message, user.name + ' has been removed from the team. Sorry to see them go!')
+    } else {
+      bot.reply(message, 'Um, this is awkward, but ' + userId + ' isn\'t on the team :grimacing:');
+    }
+  });
 });
 
 
