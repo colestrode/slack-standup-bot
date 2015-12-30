@@ -23,10 +23,6 @@ usersController.use(controller);
 summaryController.use(controller);
 standupController.use(controller);
 
-// standup admin: can't modify users during standup
-// start
-// stop (have auto-stop when reach last user)
-
 
 
 // skip (current user)

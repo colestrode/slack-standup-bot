@@ -35,7 +35,7 @@ module.exports.remove = function(userId) {
   return q(removedUser.length ? removedUser[0] : undefined);
 };
 
-module.exports.removeUserByName = function(username) {
+module.exports.removeByName = function(username) {
   var user = _.find(users, {name: username});
 
   if(!user) {
@@ -46,18 +46,15 @@ module.exports.removeUserByName = function(username) {
 };
 
 module.exports.list = function() {
-  return q(users);
+  return users;
 };
 
 module.exports.get = function(userId) {
-  return q(_.find(users, {id: userId}));
+  return _.find(users, {id: userId});
 };
 
 module.exports.exists = function(userId) {
-  return q(module.exports.get(userId))
-    .then(function(user) {
-      return !!user;
-    });
+  return !!module.exports.get(userId);
 };
 
 function getUser(bot, userId) {

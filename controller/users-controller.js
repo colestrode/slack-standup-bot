@@ -38,7 +38,7 @@ module.exports.use = function(controller) {
     } else {
       // handles unknown @username and bare username
       userId = userId.replace('@', '');
-      promise = usersModel.removeUserByName(userId);
+      promise = usersModel.removeByName(userId);
     }
 
     promise.then(function(user) {
@@ -52,13 +52,12 @@ module.exports.use = function(controller) {
 
   // list participants
   controller.hears(['list', 'participants', 'members', 'team'], 'direct_mention', function(bot, message) {
-    usersModel.list()
-      .then(function(users) {
-        if (!users.length) {
-          bot.reply(message, 'Nobody! I\'m all alone! :crying_cat_face:');
-        } else {
-          bot.reply(message, 'Current members: ' + _.pluck(users, 'name').join(', '));
-        }
-      });
+    var users = usersModel.list();
+
+    if (!users.length) {
+      bot.reply(message, 'Nobody! I\'m all alone! :crying_cat_face:');
+    } else {
+      bot.reply(message, 'Current members: ' + _.pluck(users, 'name').join(', '));
+    }
   });
 };

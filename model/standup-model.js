@@ -1,4 +1,5 @@
 var q = require('q')
+  , _ = require('lodash')
   , statuses = {};
 
 module.exports.summaryChannel; // TODO this should be persisted
@@ -25,13 +26,11 @@ module.exports.summarize = function(bot) {
     , now = new Date()
     , today = now.getFullYear() + '-' + (now.getMonth() + 1) + '-' + now.getDate();
 
-  var lorem = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum';
-
   return upload({
     filetype: 'post',
     filename: 'Standup for ' + today,
     title: 'test file ' + now.getTime(),
-    content: lorem,
+    content: compileSummary(),
     initial_comment: ':boom:',
     channels: module.exports.summaryChannel
   }).fail(function(err) {
@@ -39,3 +38,16 @@ module.exports.summarize = function(bot) {
     throw err;
   });
 };
+
+function compileSummary() {
+  var summary = '';
+
+  _.forOwn(statuses, function(status, userId) {
+    summary = '*Summary for ' + userId + '*\n\n' +
+        '*What did you do yesterday?*\n' + status.yesterday + '\n\n' +
+        '*What did are you doing today?*\n' + status.today + '\n\n' +
+        '*Anything in your way?*\n' + status.obstacles + '\n\n';
+  });
+
+  return summary;
+}

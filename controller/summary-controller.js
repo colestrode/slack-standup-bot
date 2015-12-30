@@ -16,7 +16,7 @@ module.exports.use = function(controller) {
 
   // this is just a stub for now, eventually we'll get all the standup statuses and compile them
   controller.hears('summarize', 'direct_mention', function(bot, message) {
-    standupModel.summarize(bot, standupModel.summaryChannel || message.channel)
+    standupModel.summarize(bot)
       .then(function() {
         bot.reply(message, 'Post successfully created!');
       })
