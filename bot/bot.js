@@ -35,14 +35,29 @@ controller.hears(['leave', 'quit'], 'direct_mention', function(bot, message) {
       if (user) {
         bot.reply(message, user.name + ' has left the team. Sorry to see you go!')
       } else {
-        bot.reply(message, 'Um, this is awkward, but you weren\'t on the team to begin with :grimmace:');
+        bot.reply(message, 'Um, this is awkward, but you weren\'t on the team to begin with :grimacing:');
       }
     });
 });
 
 // kick/remove
-controller.hears(['kick (.*)'], 'direct_mention', function(bot, message) {
-  console.log(message);
+controller.hears(['kick @(.*)', 'remove @(.*)'], 'direct_mention', function(bot, message) {
+  var userId = message.match[1];
+
+  if(!userId) {
+    return bot.reply(message, 'I\'m not sure who to remove... try `remove @user`');
+  }
+
+  userId = userId.replace('<', '').replace('@', '').replace('>', '');
+
+  usersModel.removeUser(userId)
+    .then(function(user) {
+      if (user) {
+        bot.reply(message, user.name + ' has been removed from the team. Sorry to see them go!')
+      } else {
+        bot.reply(message, 'Um, this is awkward, but @' + username + ' isn\'t on the team :grimacing:');
+      }
+    });
 });
 
 
