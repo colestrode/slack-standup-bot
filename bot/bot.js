@@ -45,13 +45,14 @@ controller.hears(['leave', 'quit'], 'direct_mention', function(bot, message) {
 // kick/remove
 controller.hears(['kick (@.*)', 'remove (@.*)'], 'direct_mention', function(bot, message) {
   var userId = message.match[1];
+  console.log('kicking ' + userId);
 
   if(!userId) {
     return bot.reply(message, 'I\'m not sure who to remove... try `remove @user`');
   }
 
   userId = userId.replace('<', '').replace('@', '').replace('>', '');
-
+  console.log('about to remove ' + userId);
   usersModel.remove(userId)
     .then(function(user) {
       if (user) {

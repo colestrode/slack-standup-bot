@@ -13,7 +13,7 @@ module.exports.init = function(bot) {
 
 module.exports.add = function(bot, userId) {
   return getUser(bot, userId).then(function(user) {
-    if (_.find(userIds, userId) === undefined) {
+    if (_.indexOf(userIds, userId) < 0) {
       userIds.push(userId);
       users.push(user);
 
