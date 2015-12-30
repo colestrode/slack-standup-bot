@@ -10,7 +10,9 @@ controller = Botkit.slackbot({
 // connect the bot to a stream of messages
 controller.spawn({
   token: process.env.SLACK_API_TOKEN
-}).startRTM();
+}).startRTM(function(bot) {
+  usersModel.init(bot);
+});
 
 // user management:
 

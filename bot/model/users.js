@@ -1,9 +1,15 @@
 var _ = require('lodash')
   , q = require('q')
   , userIds = [] // persisted
-  , users = [];
+  , users;
 
-// TODO hydrate list on init
+module.exports.init = function(bot) {
+  // TODO read persisted list
+  return q.all(_.map(userIds, _.partial(getUser, bot)))
+    .then(function (us) {
+      users = us;
+    });
+};
 
 module.exports.add = function(bot, userId) {
   return getUser(bot, userId).then(function(user) {
