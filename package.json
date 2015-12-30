@@ -28,6 +28,7 @@
   "dependencies": {
     "botkit": "0.0.5",
     "express": "^4.13.3",
-    "lodash": "^3.10.1"
+    "lodash": "^3.10.1",
+    "q": "^1.4.1"
   }
 }
