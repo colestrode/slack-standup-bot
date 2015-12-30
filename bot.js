@@ -1,8 +1,10 @@
 var Botkit = require('botkit')
   , _ = require('lodash')
   , usersModel = require('./model/users-model')
+  , standupModel = require('./model/standup-model')
   , usersController = require('./controller/users-controller')
   , summaryController = require('./controller/summary-controller')
+  , standupController = require('./controller/standup-controller')
   , controller;
 
 controller = Botkit.slackbot({
@@ -14,10 +16,12 @@ controller.spawn({
   token: process.env.SLACK_API_TOKEN
 }).startRTM(function(bot) {
   usersModel.init(bot);
+  standupModel.init();
 });
 
 usersController.use(controller);
 summaryController.use(controller);
+standupController.use(controller);
 
 // standup admin: can't modify users during standup
 // start
