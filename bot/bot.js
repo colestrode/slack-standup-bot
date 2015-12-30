@@ -50,7 +50,7 @@ controller.hears(['kick \@(.*)', 'remove \@(.*)'], 'direct_mention', function(bo
 
   userId = userId.replace('<', '').replace('@', '').replace('>', '');
 
-  usersModel.removeUser(userId)
+  usersModel.remove(userId)
     .then(function(user) {
       if (user) {
         bot.reply(message, user.name + ' has been removed from the team. Sorry to see them go!')
