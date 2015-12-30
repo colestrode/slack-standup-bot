@@ -41,7 +41,7 @@ controller.hears(['leave', 'quit'], 'direct_mention', function(bot, message) {
 });
 
 // kick/remove
-controller.hears(['kick @(.*)', 'remove @(.*)'], 'direct_mention', function(bot, message) {
+controller.hears(['kick \@(.*)', 'remove \@(.*)'], 'direct_mention', function(bot, message) {
   var userId = message.match[1];
 
   if(!userId) {
