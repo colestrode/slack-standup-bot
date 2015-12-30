@@ -43,7 +43,7 @@ controller.hears(['leave', 'quit'], 'direct_mention', function(bot, message) {
 });
 
 // kick/remove
-controller.hears(['kick (@.*)', 'remove (@.*)'], 'direct_mention', function(bot, message) {
+controller.hears(['kick (.*)', 'remove (.*)'], 'direct_mention', function(bot, message) {
   var userId = message.match[1];
   console.log('kicking ' + userId);
 
@@ -52,14 +52,17 @@ controller.hears(['kick (@.*)', 'remove (@.*)'], 'direct_mention', function(bot,
   }
 
   userId = userId.replace('<', '').replace('@', '').replace('>', '');
-  console.log('about to remove ' + userId);
+
   usersModel.remove(userId)
     .then(function(user) {
       if (user) {
         bot.reply(message, user.name + ' has been removed from the team. Sorry to see them go!')
       } else {
-        bot.reply(message, 'Um, this is awkward, but @' + username + ' isn\'t on the team :grimacing:');
+        bot.reply(message, 'Um, this is awkward, but ' + username + ' isn\'t on the team :grimacing:');
       }
+    })
+    .fail(function (err) {
+      console.log('error kicking', userId, err);
     });
 });
 
