@@ -28,7 +28,7 @@ controller.hears('join', 'direct_mention', function(bot, message) {
 
 // leave
 controller.hears(['leave', 'quit'], 'direct_mention', function(bot, message) {
-  usersModelre.remove(message.user)
+  usersModel.remove(message.user)
     .then(function(user) {
       if (user) {
         bot.reply(message, user.name + ' has left the team. Sorry to see you go!')

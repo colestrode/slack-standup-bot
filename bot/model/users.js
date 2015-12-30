@@ -7,7 +7,7 @@ var _ = require('lodash')
 
 module.exports.add = function(bot, userId) {
   return getUser(bot, userId).then(function(user) {
-    if (!module.exports.exists(userId)) {
+    if (_.find(userIds, userId) === undefined) {
       usersIds.push(userId);
       users.push(user);
 
