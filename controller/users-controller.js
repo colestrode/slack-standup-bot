@@ -28,17 +28,15 @@ module.exports.use = function(controller) {
 
   // kick/remove
   controller.hears(['kick (.*)', 'remove (.*)'], 'direct_mention', function(bot, message) {
-    var userId = message.match[1]
+    var userId = message.match[1] || ''
       , promise;
 
-    if(!userId) {
-      return bot.reply(message, 'I\'m not sure who to remove... try `remove @user`');
-    }
-
     if(userId.indexOf('<@') === 0) {
+      // known user who is referenced by @username will be resolved to <@userid>
       userId = userId.replace('<', '').replace('@', '').replace('>', '');
       promise = usersModel.remove(userId);
     } else {
+      // handles unknown @username and bare username
       userId = userId.replace('@', '');
       promise = usersModel.removeUserByName(userId);
     }
@@ -47,13 +45,13 @@ module.exports.use = function(controller) {
       if (user) {
         bot.reply(message, user.name + ' has been removed from the team. Sorry to see them go!')
       } else {
-        bot.reply(message, 'Um, this is awkward, but ' + userId + ' isn\'t on the team :grimacing:');
+        bot.reply(message, 'Um, this is awkward, but they aren\'t on the team :grimacing:');
       }
     });
   });
 
   // list participants
-  controller.hears(['list', 'participants', 'members'], 'direct_mention', function(bot, message) {
+  controller.hears(['list', 'participants', 'members', 'team'], 'direct_mention', function(bot, message) {
     usersModel.list()
       .then(function(users) {
         if (!users.length) {

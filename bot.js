@@ -2,6 +2,7 @@ var Botkit = require('botkit')
   , _ = require('lodash')
   , usersModel = require('./model/users-model')
   , usersController = require('./controller/users-controller')
+  , summaryController = require('./controller/summary-controller')
   , controller;
 
 controller = Botkit.slackbot({
@@ -16,11 +17,12 @@ controller.spawn({
 });
 
 usersController.use(controller);
+summaryController.use(controller);
 
-// standup admin:
+// standup admin: can't modify users during standup
 // start
 // stop (have auto-stop when reach last user)
-// set reporting channel
+
 
 
 // skip (current user)
