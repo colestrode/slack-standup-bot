@@ -14,7 +14,7 @@ module.exports.init = function(bot) {
 module.exports.add = function(bot, userId) {
   return getUser(bot, userId).then(function(user) {
     if (_.find(userIds, userId) === undefined) {
-      usersIds.push(userId);
+      userIds.push(userId);
       users.push(user);
 
       // TODO update persisted ID's
