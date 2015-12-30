@@ -1,0 +1,38 @@
+0 info it worked if it ends with ok
+1 verbose cli [ 'node',
+1 verbose cli   '/opt/boxen/nodenv/versions/v0.12.7/bin/npm',
+1 verbose cli   'run-script',
+1 verbose cli   'bot' ]
+2 info using npm@2.14.3
+3 info using node@v0.12.7
+4 verbose run-script [ 'prebot', 'bot', 'postbot' ]
+5 info prebot slack-standup-bot@0.0.1
+6 info bot slack-standup-bot@0.0.1
+7 verbose unsafe-perm in lifecycle true
+8 info slack-standup-bot@0.0.1 Failed to exec bot script
+9 verbose stack Error: slack-standup-bot@0.0.1 bot: `node bot/bot.js`
+9 verbose stack Exit status 1
+9 verbose stack     at EventEmitter.<anonymous> (/opt/boxen/nodenv/versions/v0.12.7/lib/node_modules/npm/lib/utils/lifecycle.js:214:16)
+9 verbose stack     at EventEmitter.emit (events.js:110:17)
+9 verbose stack     at ChildProcess.<anonymous> (/opt/boxen/nodenv/versions/v0.12.7/lib/node_modules/npm/lib/utils/spawn.js:24:14)
+9 verbose stack     at ChildProcess.emit (events.js:110:17)
+9 verbose stack     at maybeClose (child_process.js:1015:16)
+9 verbose stack     at Process.ChildProcess._handle.onexit (child_process.js:1087:5)
+10 verbose pkgid slack-standup-bot@0.0.1
+11 verbose cwd /Users/cfurfarostrode/src/personal/slack-standup-bot
+12 error Darwin 13.4.0
+13 error argv "node" "/opt/boxen/nodenv/versions/v0.12.7/bin/npm" "run-script" "bot"
+14 error node v0.12.7
+15 error npm  v2.14.3
+16 error code ELIFECYCLE
+17 error slack-standup-bot@0.0.1 bot: `node bot/bot.js`
+17 error Exit status 1
+18 error Failed at the slack-standup-bot@0.0.1 bot script 'node bot/bot.js'.
+18 error This is most likely a problem with the slack-standup-bot package,
+18 error not with npm itself.
+18 error Tell the author that this fails on your system:
+18 error     node bot/bot.js
+18 error You can get their info via:
+18 error     npm owner ls slack-standup-bot
+18 error There is likely additional logging output above.
+19 verbose exit [ 1, true ]
