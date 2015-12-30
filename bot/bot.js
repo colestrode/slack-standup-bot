@@ -15,27 +15,33 @@ controller.spawn({
 // user management:
 // join
 controller.hears('join', 'direct_mention', function(bot, message) {
-  bot.api.users.info({user: message.user}, function(err, res) {
-    if(err) {
+  return userModel.add(bot, message.user)
+    .then(function(user) {
+      bot.reply(message, 'You\'re on the roster ' + user.name + ' :thumbsup:');
+    })
+    .fail(function(err) {
+      console.log(err);
       return bot.reply(message, 'Oops! I wasn\'t able to add you right now, maybe try again in a minute');
-    }
-    var user = res.user;
-    usersModel.add(user);
-    bot.reply(message, 'You\'re on the roster ' + user.name + ' :thumbsup:');
-  });
+    });
 });
 
 // leave
 controller.hears(['leave', 'quit'], 'direct_mention', function(bot, message) {
-  var user = usersModel.remove(message.user);
-  if (user) {
-    bot.reply(message, user.name + ' has left the team. Sorry to see you go!')
-  } else {
-    bot.reply(message, 'Um, this is awkward, but you weren\'t on the team to begin with :grimmace:');
-  }
+  usersModel.remove(message.user)
+    .then(function(user) {
+      if (user) {
+        bot.reply(message, user.name + ' has left the team. Sorry to see you go!')
+      } else {
+        bot.reply(message, 'Um, this is awkward, but you weren\'t on the team to begin with :grimmace:');
+      }
+    });
 });
 
 // kick/remove
+controller.hears(['kick'], 'direct_mention', function(bot, message) {
+  console.log(message);
+});
+
 
 // standup admin:
 // start
