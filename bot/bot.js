@@ -44,21 +44,26 @@ controller.hears(['leave', 'quit'], 'direct_mention', function(bot, message) {
 
 // kick/remove
 controller.hears(['kick (.*)', 'remove (.*)'], 'direct_mention', function(bot, message) {
-  var userId = message.match[1];
-  console.log('kicking ' + userId);
+  var userId = message.match[1]
+    , promise;
 
   if(!userId) {
     return bot.reply(message, 'I\'m not sure who to remove... try `remove @user`');
   }
 
-  userId = userId.replace('<', '').replace('@', '').replace('>', '');
+  if(userId.indexOf('<@') === 0) {
+    userId = userId.replace('<', '').replace('@', '').replace('>', '');
+    promise = usersModel.remove(userId);
+  } else {
+    userId = userId.replace('@', '');
+    promise = usersModel.removeUserByName(userId);
+  }
 
-  usersModel.remove(userId)
-    .then(function(user) {
+  promise.then(function(user) {
       if (user) {
         bot.reply(message, user.name + ' has been removed from the team. Sorry to see them go!')
       } else {
-        bot.reply(message, 'Um, this is awkward, but ' + username + ' isn\'t on the team :grimacing:');
+        bot.reply(message, 'Um, this is awkward, but ' + userId + ' isn\'t on the team :grimacing:');
       }
     })
     .fail(function (err) {
