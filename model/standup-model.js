@@ -43,10 +43,10 @@ function compileSummary() {
 
   _.forOwn(statuses, function(status) {
     summary += '##Status for ' + status.user.name + '##\n\n' +
-        '*_What did you do yesterday?_*\n' + status.yesterday + '\n\n' +
-        '*_What did are you doing today?_*\n' + status.today + '\n\n' +
-        '*_Anything in your way?_*\n' + status.obstacles + '\n\n' +
-        '----\n\n\n'
+        '*_What did you do yesterday?_*\n\n' + status.yesterday + '\n\n' +
+        '*_What did are you doing today?_*\n\n' + status.today + '\n\n' +
+        '*_Anything in your way?_*\n\n' + status.obstacles + '\n\n' +
+        '----\n\n'
     ;
   });
 

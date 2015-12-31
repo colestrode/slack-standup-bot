@@ -40,7 +40,7 @@ module.exports.use = function(controller) {
     readyForNextStatus = false;
     standupHappening = false;
 
-    bot.reply('Standup is over!');
+    bot.reply(message, 'Standup is over!');
 
     bot.startConversation(message, function (err, convo) {
       convo.ask('<@' + message.user + '> do you want a summary of this standup?'[{
@@ -69,7 +69,7 @@ module.exports.use = function(controller) {
     }
   });
 
-  controller.hears(['skip', 'no', 'nope', 'nah', 'n'], 'direct_mention, ambient', function (bot, message) {
+  controller.hears(['skip', 'no', 'nope', 'nah', 'n'], 'direct_mention,ambient', function (bot, message) {
     if (readyForNextStatus) {
       bot.reply(message, 'Skipping ' + currentUser.name);
       afterStatus(bot);
