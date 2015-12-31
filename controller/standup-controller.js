@@ -13,8 +13,8 @@ module.exports.use = function(controller) {
       return bot.reply(message, 'Standup has already started!');
     }
 
-    if (!standupModel.summaryChannel) {
-      standupModel.summaryChannel = message.channel;
+    if (!standupModel.getSummaryChannel()) {
+      standupModel.setSummaryChannel(message.channel);
     }
 
     standupChannel = message.channel; // save this for later
@@ -140,7 +140,7 @@ module.exports.use = function(controller) {
 
     standupModel.summarize(bot)
       .then(function () {
-        sayConfig.text += ' You can find a summary in <#' + standupModel.summaryChannel + '>';
+        sayConfig.text += ' You can find a summary in <#' + standupModel.getSummaryChannel() + '>';
         bot.say(sayConfig);
       })
       .fail(function (err) {

@@ -1,13 +1,30 @@
 var q = require('q')
   , _ = require('lodash')
   , moment = require('moment')
-  , statuses = {};
-
-module.exports.summaryChannel; // TODO this should be persisted
+  , statuses = {}
+  , summaryChannel
+  , getChannel
+  , saveChannel;
 
 module.exports.init = function(controller) {
-  q.nbind(controller.storage.teams.get, controller.storage.teams);
-  // noop for now, but eventually we'll read from redis and set the summary channel
+  getChannel = q.nbind(controller.storage.teams.get, controller.storage.teams);
+  saveChannel = q.nbind(controller.storage.teams.save, controller.storage.teams);
+
+  getChannel('summarychannel')
+    .then(function(sc) {
+      if (sc) {
+        summaryChannel = sc.channel;
+      }
+    });
+};
+
+module.exports.setSummaryChannel = function(channel) {
+  summaryChannel = channel;
+  saveChannel({id: 'summarychannel', channel: channel});
+};
+
+module.exports.getSummaryChannel = function() {
+  return summaryChannel;
 };
 
 module.exports.addStatus = function(userId, status) {
