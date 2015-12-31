@@ -1,7 +1,7 @@
 var standupModel = require('../model/standup-model');
 
 module.exports.use = function(controller) {
-  controller.hears(['summarize in (.*)', 'report in (.*)'], 'direct_mention', function(bot, message) {
+  controller.hears(['summarize in (.*)', 'summarize to (.*)', 'report in (.*)', 'report to (.*)'], 'direct_mention', function(bot, message) {
     var channelId = message.match[1]
       , matches = channelId.match(/<#(.*)>/);
 
@@ -12,16 +12,5 @@ module.exports.use = function(controller) {
       standupModel.summaryChannel = matches[1];
       bot.reply(message, 'Aye aye captain! :ok_hand:');
     }
-  });
-
-  // this is just a stub for now, eventually we'll get all the standup statuses and compile them
-  controller.hears('summarize', 'direct_mention', function(bot, message) {
-    standupModel.summarize(bot)
-      .then(function() {
-        bot.reply(message, 'Post successfully created!');
-      })
-      .fail(function() {
-        bot.reply(message, 'Oops! check the logs!');
-      });
   });
 };

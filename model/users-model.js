@@ -57,6 +57,23 @@ module.exports.exists = function(userId) {
   return !!module.exports.get(userId);
 };
 
+module.exports.iterator = function() {
+  var usersList = _.cloneDeep(users) // cloning prevents the list being modified during iteration
+    , length = usersList.length
+    , current = -1;
+
+  return {
+    next: function() {
+      current++;
+      return (current < length) ? usersList[current] : undefined;
+    },
+
+    hasNext: function() {
+      return (current + 1) < length;
+    }
+  };
+};
+
 function getUser(bot, userId) {
   var info = q.nbind(bot.api.users.info, bot.api.users);
 

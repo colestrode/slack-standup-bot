@@ -1,9 +1,9 @@
 var q = require('q')
   , _ = require('lodash')
+  , moment = require('moment')
   , statuses = {};
 
 module.exports.summaryChannel; // TODO this should be persisted
-module.exports.happening = false;
 
 module.exports.init = function() {
   // noop for now, but eventually we'll read from redis and set the summary channel
@@ -23,15 +23,14 @@ module.exports.clearStatuses = function() {
 
 module.exports.summarize = function(bot) {
   var upload = q.nbind(bot.api.files.upload, bot.api.files)
-    , now = new Date()
-    , today = now.getFullYear() + '-' + (now.getMonth() + 1) + '-' + now.getDate();
+    , today = moment().format('YYYY-MM-DD')
+    , title = 'Standup for ' + today;
 
   return upload({
     filetype: 'post',
-    filename: 'Standup for ' + today,
-    title: 'test file ' + now.getTime(),
+    filename: title,
+    title: title,
     content: compileSummary(),
-    initial_comment: ':boom:',
     channels: module.exports.summaryChannel
   }).fail(function(err) {
     console.log(err);
@@ -42,11 +41,13 @@ module.exports.summarize = function(bot) {
 function compileSummary() {
   var summary = '';
 
-  _.forOwn(statuses, function(status, userId) {
-    summary = '*Summary for ' + userId + '*\n\n' +
-        '*What did you do yesterday?*\n' + status.yesterday + '\n\n' +
-        '*What did are you doing today?*\n' + status.today + '\n\n' +
-        '*Anything in your way?*\n' + status.obstacles + '\n\n';
+  _.forOwn(statuses, function(status) {
+    summary += '##Status for ' + status.user.name + '##\n\n' +
+        '*_What did you do yesterday?_*\n' + status.yesterday + '\n\n' +
+        '*_What did are you doing today?_*\n' + status.today + '\n\n' +
+        '*_Anything in your way?_*\n' + status.obstacles + '\n\n' +
+        '----\n\n\n'
+    ;
   });
 
   return summary;

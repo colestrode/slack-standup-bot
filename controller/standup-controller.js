@@ -1,14 +1,15 @@
 var usersModel = require('../model/users-model')
   , standupModel = require('../model/standup-model')
-  , _ = require('lodash')
   , readyForNextStatus = false
+  , standupHappening = false
   , standupChannel
-  , currentUser;
+  , currentUser
+  , userIterator;
 
 module.exports.use = function(controller) {
   controller.hears('start', 'direct_mention', function (bot, message) {
 
-    if (standupModel.happening) {
+    if (standupHappening) {
       return bot.reply(message, 'Standup has already started!');
     }
 
@@ -22,97 +23,130 @@ module.exports.use = function(controller) {
       return bot.reply(message, 'Looks like no one is in the team! Get a few people to join and then we\'ll have some fun!');
     }
 
-    standupModel.happening = true;
+    standupHappening = true;
     bot.reply(message, 'Alright! Let\'s get this party started!');
-    readyForNextStatus = true;
 
     // notify first user and start a conversation
-    startStatus(bot, message);
+    userIterator = usersModel.iterator();
+    currentUser = userIterator.next();
+    promptUser(bot);
   });
 
   controller.hears('end', 'direct_mention', function (bot, message) {
-    if (!standupModel.happening) {
+    if (!standupHappening) {
       return bot.reply(message, 'Standup is already over! Start another one with `start`');
     }
 
-    bot.api.channels.info({channel: standupModel.summaryChannel}, function (err, res) {
-      var reply = 'Great job everyone! :tada:';
+    readyForNextStatus = false;
+    standupHappening = false;
 
-      standupModel.happening = false;
+    bot.reply('Standup is over!');
 
-      if (err) {
-        return bot.reply(message, reply);
-      }
-
-      standupModel.summarize(bot)
-        .then(function () {
-          bot.reply(message, reply + ' You can find a summary in #' + res.channel.name);
-        })
-        .fail(function (err) {
-          console.log(err);
-          bot.reply(message, reply + ' I had a problem saving the summary though, sorry about that :grimacing:');
-        });
+    bot.startConversation(message, function (err, convo) {
+      convo.ask('<@' + message.user + '> do you want a summary of this standup?'[{
+          pattern: bot.utterances.yes,
+          callback: function() {
+            summarizeStandup(bot);
+          }
+        }, {
+          pattern: bot.utterances.no,
+          callback: function() {
+            bot.say({channel: message.channel, text: 'Ok :hear_no_evil: Come again soon!'})
+          }
+        }]);
     });
   });
+
+
+  /*******************
+   * Running Standup *
+   *******************/
 
   controller.hears(['yes', 'yea', 'yup', 'yep', 'ya', 'sure', 'ok', 'y', 'yeah', 'yah'], 'direct_mention,ambient', function (bot, message) {
     if (readyForNextStatus && message.user === currentUser.id) {
       readyForNextStatus = false;
-      gatherStatus(bot, message, _.bind(standupModel.summarize, standupModel, bot));
+      gatherStatus(bot, message);
     }
   });
 
-  controller.hears(['skip'], 'direct_mention, ambient', function (bot, message) {
+  controller.hears(['skip', 'no', 'nope', 'nah', 'n'], 'direct_mention, ambient', function (bot, message) {
     if (readyForNextStatus) {
-      bot.reploy(message, 'Skipping (but not really)');
+      bot.reply(message, 'Skipping ' + currentUser.name);
+      afterStatus(bot);
     }
   });
 
-
-  function startStatus(bot) {
-    var users = usersModel.list();
-    currentUser = users[0];
+  function promptUser(bot) {
+    readyForNextStatus = true;
     bot.say({
       text: '<@' + currentUser.id + '> are you ready?',
       channel: standupChannel
     });
   }
 
-  function gatherStatus(bot, message, done) {
+  function gatherStatus(bot, message) {
     bot.startConversation(message, function (err, convo) {
-      console.log('conversation started');
-      convo.ask('What did you do yesterday?', function(response, convo) {
-        convo.next();
-      }, {
+
+      convo.ask('What did you do yesterday?', convoCallback, {
         key: 'yesterday',
         multiple: true
       });
 
-      convo.ask('What are you doing today?', function(response, convo) {
-        convo.next();
-      }, {
+      convo.ask('What are you doing today?', convoCallback, {
         key: 'today',
         multiple: true
       });
 
-      convo.ask('Anything in your way?', function(response, convo) {
-        convo.next();
-      }, {
+      convo.ask('Anything in your way?', convoCallback, {
         key: 'obstacles',
         multiple: true
       });
+
+      convo.say('Great! Thanks ' + currentUser.name + '!');
 
       convo.on('end', function(convo) {
         if (convo.status === 'completed') {
           standupModel.addStatus(currentUser.id, {
             yesterday: convo.extractResponse('yesterday'),
             today: convo.extractResponse('today'),
-            obstacles: convo.extractResponse('obstacles')
+            obstacles: convo.extractResponse('obstacles'),
+            user: currentUser
           });
-
-          done();
         }
+
+        afterStatus(bot);
       });
+
+      function convoCallback(response, convo) {
+        convo.next();
+      }
     });
+  }
+
+  function afterStatus(bot) {
+    // get next user, if null summarize
+    if (userIterator.hasNext()) {
+      currentUser = userIterator.next();
+      promptUser(bot);
+    } else {
+      summarizeStandup(bot);
+      standupHappening = false;
+      readyForNextStatus = false;
+    }
+  }
+
+  function summarizeStandup(bot) {
+    var sayConfig = {channel: standupChannel, text: 'Great job everyone! :tada:'};
+
+    standupModel.summarize(bot)
+      .then(function () {
+        sayConfig.text += ' You can find a summary in <#' + standupModel.summaryChannel + '>';
+        bot.say(sayConfig);
+      })
+      .fail(function (err) {
+        console.log(err);
+        sayConfig.text += ' I had a problem saving the summary though, sorry about that :grimacing:';
+        return bot.say(sayConfig);
+      });
   }
 };
