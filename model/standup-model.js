@@ -49,7 +49,7 @@ module.exports.summarize = function(bot) {
     filename: title,
     title: title,
     content: compileSummary(),
-    channels: module.exports.summaryChannel
+    channels: summaryChannel
   }).fail(function(err) {
     console.log(err);
     throw err;
