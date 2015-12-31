@@ -45,13 +45,15 @@ module.exports.use = function(controller) {
     bot.startConversation(message, function (err, convo) {
       convo.ask('<@' + message.user + '> do you want a summary of this standup?', [{
           pattern: bot.utterances.yes,
-          callback: function() {
+          callback: function(response, convo) {
             summarizeStandup(bot);
+            convo.next();
           }
         }, {
           pattern: bot.utterances.no,
-          callback: function() {
-            bot.say({channel: message.channel, text: 'Ok :hear_no_evil: Come again soon!'})
+          callback: function(response, convo) {
+            bot.say({channel: message.channel, text: 'Ok :hear_no_evil: Come again soon!'});
+            convo.next();
           }
         }]);
     });
