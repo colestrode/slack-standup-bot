@@ -43,7 +43,7 @@ module.exports.use = function(controller) {
     bot.reply(message, 'Standup is over!');
 
     bot.startConversation(message, function (err, convo) {
-      convo.ask('<@' + message.user + '> do you want a summary of this standup?'[{
+      convo.ask('<@' + message.user + '> do you want a summary of this standup?', [{
           pattern: bot.utterances.yes,
           callback: function() {
             summarizeStandup(bot);

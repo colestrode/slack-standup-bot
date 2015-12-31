@@ -1,26 +1,39 @@
 var _ = require('lodash')
   , q = require('q')
+  , getIds
+  , saveIds
+  , userIdsKey = 'userids'
   , userIds = [] // persisted
   , users;
 
-module.exports.init = function(bot) {
-  // TODO read persisted list
-  return q.all(_.map(userIds, _.partial(getUser, bot)))
-    .then(function (us) {
-      users = us;
-    });
+module.exports.init = function(controller, bot) {
+  getIds = q.nbind(controller.storage.teams.get, controller.storage.teams);
+  saveIds = q.nbind(controller.storage.teams.save, controller.storage.teams);
+
+  return getIds(userIdsKey)
+    .then(function(uids) {
+      if (uids) {
+        userIds = uids.userIds || [];
+      }
+
+      return q.all(_.map(userIds, _.partial(getUser, bot)))
+        .then(function (us) {
+          users = us;
+        });
+    })
 };
 
 module.exports.add = function(bot, userId) {
-  return getUser(bot, userId).then(function(user) {
-    if (_.indexOf(userIds, userId) < 0) {
-      userIds.push(userId);
-      users.push(user);
+  return getUser(bot, userId)
+    .then(function(user) {
+      if (_.indexOf(userIds, userId) < 0) {
+        userIds.push(userId);
+        users.push(user);
 
-      // TODO update persisted ID's
-    }
-    return user;
-  });
+        saveIds({id: userIdsKey, userIds: userIds});
+      }
+      return user;
+    });
 };
 
 module.exports.remove = function(userId) {
@@ -30,8 +43,7 @@ module.exports.remove = function(userId) {
     return uid === userId;
   });
 
-  // TODO update persisted ID's
-
+  saveIds({id: userIdsKey, userIds: userIds});
   return q(removedUser.length ? removedUser[0] : undefined);
 };
 

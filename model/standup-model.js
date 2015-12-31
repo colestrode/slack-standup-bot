@@ -5,7 +5,8 @@ var q = require('q')
 
 module.exports.summaryChannel; // TODO this should be persisted
 
-module.exports.init = function() {
+module.exports.init = function(controller) {
+  q.nbind(controller.storage.teams.get, controller.storage.teams);
   // noop for now, but eventually we'll read from redis and set the summary channel
 };
 
@@ -43,9 +44,9 @@ function compileSummary() {
 
   _.forOwn(statuses, function(status) {
     summary += '##Status for ' + status.user.name + '##\n\n' +
-        '*_What did you do yesterday?_*\n\n' + status.yesterday + '\n\n' +
-        '*_What did are you doing today?_*\n\n' + status.today + '\n\n' +
-        '*_Anything in your way?_*\n\n' + status.obstacles + '\n\n' +
+        '_What did you do yesterday?_\n\n' + status.yesterday + '\n\n' +
+        '_What did are you doing today?_\n\n' + status.today + '\n\n' +
+        '_Anything in your way?_\n\n' + status.obstacles + '\n\n' +
         '----\n\n'
     ;
   });
