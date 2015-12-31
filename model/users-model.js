@@ -4,7 +4,7 @@ var _ = require('lodash')
   , saveIds
   , userIdsKey = 'userids'
   , userIds = [] // persisted
-  , users;
+  , users = [];
 
 module.exports.init = function(controller, bot) {
   getIds = q.nbind(controller.storage.teams.get, controller.storage.teams);
@@ -19,7 +19,7 @@ module.exports.init = function(controller, bot) {
     .finally(function() {
       return q.all(_.map(userIds, _.partial(getUser, bot)))
         .then(function (us) {
-          users = us;
+          users = us || [];
         });
     })
 };
