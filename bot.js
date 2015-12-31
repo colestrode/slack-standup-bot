@@ -2,6 +2,7 @@ var Botkit = require('botkit')
   , usersController = require('./controller/users-controller')
   , summaryController = require('./controller/summary-controller')
   , standupController = require('./controller/standup-controller')
+  , helpController = require('./controller/help-controller')
   , controller
   , redisStorage = require('./lib/redis-storage')({
       namespace: 'standup',
@@ -24,3 +25,4 @@ controller.spawn({
 usersController.use(controller);
 summaryController.use(controller);
 standupController.use(controller);
+helpController.use(controller);
