@@ -15,7 +15,8 @@ module.exports.init = function(controller, bot) {
       if (uids) {
         userIds = uids.userIds || [];
       }
-
+    })
+    .finally(function() {
       return q.all(_.map(userIds, _.partial(getUser, bot)))
         .then(function (us) {
           users = us;
