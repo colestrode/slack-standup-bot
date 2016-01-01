@@ -18,10 +18,10 @@ module.exports.init = function(controller, bot) {
     })
     .finally(function() {
       return q.all(_.map(userIds, _.partial(getUser, bot)))
-        .then(function (us) {
+        .then(function(us) {
           users = us || [];
         });
-    })
+    });
 };
 
 module.exports.add = function(bot, userId) {
@@ -51,7 +51,7 @@ module.exports.remove = function(userId) {
 module.exports.removeByName = function(username) {
   var user = _.find(users, {name: username});
 
-  if(!user) {
+  if (!user) {
     return q();
   }
 
@@ -91,7 +91,7 @@ function getUser(bot, userId) {
   var info = q.nbind(bot.api.users.info, bot.api.users);
 
   return info({user: userId})
-    .then(function (res) {
+    .then(function(res) {
       return res.user;
     });
 }

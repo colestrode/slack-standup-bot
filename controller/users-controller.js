@@ -19,7 +19,7 @@ module.exports.use = function(controller) {
     usersModel.remove(message.user)
       .then(function(user) {
         if (user) {
-          bot.reply(message, user.name + ' has left the team. Sorry to see you go!')
+          bot.reply(message, user.name + ' has left the team. Sorry to see you go!');
         } else {
           bot.reply(message, 'Um, this is awkward, but you weren\'t on the team to begin with :grimacing:');
         }
@@ -31,7 +31,7 @@ module.exports.use = function(controller) {
     var userId = message.match[1] || ''
       , promise;
 
-    if(userId.indexOf('<@') === 0) {
+    if (userId.indexOf('<@') === 0) {
       // known user who is referenced by @username will be resolved to <@userid>
       userId = userId.replace('<', '').replace('@', '').replace('>', '');
       promise = usersModel.remove(userId);
@@ -43,7 +43,7 @@ module.exports.use = function(controller) {
 
     promise.then(function(user) {
       if (user) {
-        bot.reply(message, user.name + ' has been removed from the team. Sorry to see them go!')
+        bot.reply(message, user.name + ' has been removed from the team. Sorry to see them go!');
       } else {
         bot.reply(message, 'Um, this is awkward, but they aren\'t on the team :grimacing:');
       }

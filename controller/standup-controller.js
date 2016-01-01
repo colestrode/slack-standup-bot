@@ -7,7 +7,7 @@ var usersModel = require('../model/users-model')
   , userIterator;
 
 module.exports.use = function(controller) {
-  controller.hears('start', 'direct_mention', function (bot, message) {
+  controller.hears('start', 'direct_mention', function(bot, message) {
 
     if (standupHappening) {
       return bot.reply(message, 'Standup has already started!');
@@ -32,7 +32,7 @@ module.exports.use = function(controller) {
     promptUser(bot);
   });
 
-  controller.hears('end', 'direct_mention', function (bot, message) {
+  controller.hears('end', 'direct_mention', function(bot, message) {
     if (!standupHappening) {
       return bot.reply(message, 'Standup is already over! Start another one with `start`');
     }
@@ -42,7 +42,7 @@ module.exports.use = function(controller) {
 
     bot.reply(message, 'Standup is over!');
 
-    bot.startConversation(message, function (err, convo) {
+    bot.startConversation(message, function(err, convo) {
       convo.ask('<@' + message.user + '> do you want a summary of this standup?', [{
           pattern: bot.utterances.yes,
           callback: function(response, convo) {
@@ -65,14 +65,14 @@ module.exports.use = function(controller) {
    * Running Standup *
    *******************/
 
-  controller.hears(['yes', 'yea', 'yup', 'yep', 'ya', 'sure', 'ok', 'y', 'yeah', 'yah'], 'direct_mention,ambient', function (bot, message) {
+  controller.hears(['yes', 'yea', 'yup', 'yep', 'ya', 'sure', 'ok', 'y', 'yeah', 'yah'], 'direct_mention,ambient', function(bot, message) {
     if (readyForNextStatus && message.user === currentUser.id) {
       readyForNextStatus = false;
       gatherStatus(bot, message);
     }
   });
 
-  controller.hears(['skip', 'no', 'nope', 'nah', 'n'], 'direct_mention,ambient', function (bot, message) {
+  controller.hears(['skip', 'no', 'nope', 'nah', 'n'], 'direct_mention,ambient', function(bot, message) {
     if (readyForNextStatus) {
       bot.reply(message, 'Skipping ' + currentUser.name);
       afterStatus(bot);
@@ -88,7 +88,7 @@ module.exports.use = function(controller) {
   }
 
   function gatherStatus(bot, message) {
-    bot.startConversation(message, function (err, convo) {
+    bot.startConversation(message, function(err, convo) {
 
       convo.ask('What have you done since the last standup?', convoCallback, {
         key: 'yesterday',
@@ -142,12 +142,12 @@ module.exports.use = function(controller) {
     var sayConfig = {channel: standupChannel, text: 'Great job everyone! :tada:'};
 
     standupModel.summarize(bot)
-      .then(function () {
+      .then(function() {
 
         sayConfig.text += ' You can find a summary in <#' + standupModel.getSummaryChannel() + '>';
         bot.say(sayConfig);
       })
-      .fail(function (err) {
+      .fail(function(err) {
         console.log(err);
         sayConfig.text += ' I had a problem saving the summary though, sorry about that :grimacing:';
         return bot.say(sayConfig);

@@ -4,7 +4,7 @@ module.exports.use = function(controller) {
   controller.hears(['summarize in (.*)', 'summarize to (.*)', 'report in (.*)', 'report to (.*)'], 'direct_mention', function(bot, message) {
     var channelId = message.match[1]
       , matches = channelId.match(/<#(.*)>/)
-      , channel;;
+    , channel;
 
     if (!matches || matches.length < 2) {
       channel = message.channel;

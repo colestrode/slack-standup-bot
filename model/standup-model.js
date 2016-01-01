@@ -50,7 +50,7 @@ model.summarize = function(bot) {
   return q.all(_.map(summaries, function(summary, index) {
     var postTitle = title;
     if (summaries.length > 1) {
-      postTitle += ' (' + (index + 1) + ' of ' + summaries.length + ')'
+      postTitle += ' (' + (index + 1) + ' of ' + summaries.length + ')';
     }
 
     return upload({
