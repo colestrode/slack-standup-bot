@@ -53,6 +53,7 @@ module.exports.use = function(controller) {
           pattern: bot.utterances.no,
           callback: function(response, convo) {
             bot.say({channel: message.channel, text: 'Ok :hear_no_evil: Come again soon!'});
+            standupModel.clearStatuses();
             convo.next();
           }
         }]);
@@ -142,6 +143,7 @@ module.exports.use = function(controller) {
 
     standupModel.summarize(bot)
       .then(function () {
+
         sayConfig.text += ' You can find a summary in <#' + standupModel.getSummaryChannel() + '>';
         bot.say(sayConfig);
       })
