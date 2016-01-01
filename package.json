@@ -4,7 +4,7 @@
   "description": "Standup Bot for Slack",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "grunt test",
     "bot": "node bot.js"
   },
   "engines": {
