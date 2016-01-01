@@ -89,7 +89,7 @@ module.exports.use = function(controller) {
   function gatherStatus(bot, message) {
     bot.startConversation(message, function (err, convo) {
 
-      convo.ask('What did you do yesterday?', convoCallback, {
+      convo.ask('What have you done since the last standup?', convoCallback, {
         key: 'yesterday',
         multiple: true
       });
@@ -108,7 +108,7 @@ module.exports.use = function(controller) {
 
       convo.on('end', function(convo) {
         if (convo.status === 'completed') {
-          standupModel.addStatus(currentUser.id, {
+          standupModel.addStatus({
             yesterday: convo.extractResponse('yesterday'),
             today: convo.extractResponse('today'),
             obstacles: convo.extractResponse('obstacles'),

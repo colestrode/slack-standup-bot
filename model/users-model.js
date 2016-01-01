@@ -71,7 +71,7 @@ module.exports.exists = function(userId) {
 };
 
 module.exports.iterator = function() {
-  var usersList = _.cloneDeep(users) // cloning prevents the list being modified during iteration
+  var usersList = _.sortBy(_.cloneDeep(users), 'name') // cloning prevents the list being modified during iteration
     , length = usersList.length
     , current = -1;
 
