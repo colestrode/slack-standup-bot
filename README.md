@@ -40,7 +40,7 @@ I'll keep track of your team for you across standups!
 
 ## Set Up
 
-Clone this repo and deploy it to your favorite server, I'm all set up for Heroku in case that's your thing.
+Clone this repo and deploy it to your favorite server. I'm all set up for Heroku in case that's your thing.
 Since I need to remember stuff, I'll need access to a Redis server too.
 
 Go to this page set me up in Slack: https://my.slack.com/services/new/bot
@@ -49,4 +49,4 @@ Then you'll need to set two environment variables on your server:
 
 `SLACK_API_TOKEN`: Your Slack API token that you got from the Slack bot page.
 
-`REDIS_URL`: The URL to the Redis store that I'll use for my tremendous robot brain (don't worry, I don't store much there).
+`REDIS_URL`: The URL to the Redis server that I'll use for my tremendous robot brain (don't worry, I don't put much there).
