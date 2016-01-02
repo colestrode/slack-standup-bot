@@ -1,6 +1,6 @@
-# Slack Stand-Up Bot
+https://travis-ci.org/colestrode/slack-standup-bot.svg?branch=master
 
-Hi! I'm a friendly Slack bot who will run stand ups for you! I'll even summarize everything and post summaries in the channel of your choosing!
+# Slack Stand-Up Bot
 
 ## Summaries
 
