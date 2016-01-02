@@ -1,5 +1,3 @@
-https://travis-ci.org/colestrode/slack-standup-bot.svg?branch=master
-
 # Slack Stand-Up Bot
 
 ## Summaries
