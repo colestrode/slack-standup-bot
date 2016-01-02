@@ -55,7 +55,7 @@ describe('Bot', function() {
     });
   });
 
-  it('should initizlize redis storage', function() {
+  it('should initialize redis storage', function() {
     expect(redisStorageMock).to.have.been.calledWith({
       namespace: 'standup',
       url: process.env.REDIS_URL

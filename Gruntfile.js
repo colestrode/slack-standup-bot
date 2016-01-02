@@ -26,7 +26,7 @@ module.exports = function(grunt) {
     },
     shell: {
       test: {
-        command: './node_modules/.bin/istanbul cover --report lcov --dir test/reports/  ./node_modules/.bin/_mocha --recursive ./test/ -- --colors --reporter <%= grunt.option("reporter") %> <%= grunt.option("bail") && " --bail" %>',
+        command: './node_modules/.bin/istanbul cover --report lcov --dir test/reports/ ./node_modules/.bin/_mocha --recursive ./test --grep ./test/**/*.spec.js -- --colors --reporter <%= grunt.option("reporter") %> <%= grunt.option("bail") && " --bail" %>',
         options: {
           stdout: true,
           failOnError: true
