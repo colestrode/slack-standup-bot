@@ -4,7 +4,12 @@ Hi! I'm a friendly Slack bot who will run stand ups for you! I'll even summarize
 
 ## Summaries
 
-After everyone has checked in, the stand up bot will post a summary message in a channel of your choice.
+After everyone has checked in, I'll post a summary message in a channel of your choice. You can tell me which channel by 
+using the `report in` command (details down there in the Commands section). 
+Just make sure to invite me to the reporting channel first, I may be a robot but I still have feelings.  
+
+If the summary is too long, I'll split it across a few posts. These are true Slack Posts, so you can use markdown to format your status.
+Plus they're fully searchable!
 
 ## Commands
 Type `@bot help` to get a list of these commands.
@@ -22,7 +27,7 @@ I have a pretty good memory, so you only need to tell me once :)
 
 _Adding and removing team members:_
 
-I'll keep track of your team for you!
+I'll keep track of your team for you across standups!
 
 `@bot members`: Lists the current members of the team.
 
@@ -41,6 +46,6 @@ Go to this page set me up in Slack: https://my.slack.com/services/new/bot
 
 Then you'll need to set two environment variables on your server:
 
-`SLACK_API_TOKEN`: Your Slack API token. Read through this doc on how to set up bots with Slack: 
+`SLACK_API_TOKEN`: Your Slack API token that you got from the Slack bot page.
 
-`REDIS_URL`: The URL to the Redis store that I'll use for my tremendous robot brain.
+`REDIS_URL`: The URL to the Redis store that I'll use for my tremendous robot brain (don't worry, I don't store much there).
