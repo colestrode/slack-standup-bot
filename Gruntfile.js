@@ -4,6 +4,14 @@ module.exports = function(grunt) {
   grunt.option('reporter', grunt.option('reporter') || 'spec');
 
   grunt.initConfig({
+    coveralls: {
+      options: {
+        force: true
+      },
+      grunt_coveralls_coverage: {
+        src: 'test/reports/lcov.info'
+      }
+    },
     jscs: {
       src: [
         'controller/**/*.js',

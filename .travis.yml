@@ -6,3 +6,5 @@ node_js:
   - "5"
 before_install:
   - npm install -g grunt-cli
+install: npm install
+script: "npm run-script ci"
