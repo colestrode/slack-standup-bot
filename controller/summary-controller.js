@@ -6,13 +6,14 @@ module.exports.use = function(controller) {
       , matches = channelId.match(/<#(.*)>/)
       , channel;
 
-    if (!matches || matches.length < 2) {
+    if (!matches) {
       channel = message.channel;
       bot.reply(message, 'I\'m not sure where channel that is, so I\'m going to use this one until you tell me different, cool?');
     } else {
       channel = matches[1];
       bot.reply(message, 'Aye aye captain! :ok_hand:');
     }
+
     standupModel.setSummaryChannel(channel);
   });
 };
