@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "bot": "node bot.js",
-    "ci": "grunt test && grunt coveralls:grunt_coveralls_coverage",
+    "ci": "grunt ci",
     "test": "grunt test"
   },
   "engines": {

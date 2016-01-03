@@ -49,4 +49,8 @@ module.exports = function(grunt) {
   ]);
 
   grunt.registerTask('test', ['lint', 'shell:test']);
+
+  grunt.registerTask('ci', ['test', 'coveralls:grunt_coveralls_coverage']);
+
+  grunt.registerTask('default', 'test');
 };
