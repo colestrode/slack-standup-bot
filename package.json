@@ -4,7 +4,7 @@
   "description": "Standup Bot for Slack",
   "main": "index.js",
   "scripts": {
-    "bot": "node bot.js",
+    "bot": "node index.js",
     "ci": "grunt ci",
     "test": "grunt test"
   },
