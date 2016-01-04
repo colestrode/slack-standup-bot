@@ -43,7 +43,7 @@ describe('Bot', function() {
     process.env.REDIS_URL = 'REDIS_URL';
     process.env.SLACK_API_TOKEN = 'SLACK_API_TOKEN';
 
-    Bot = proxyquire('../bot', {
+    Bot = proxyquire('../index', {
       'botkit': botkitMock,
       './controller/users-controller': usersControllerMock,
       './controller/summary-controller': summaryControllerMock,
