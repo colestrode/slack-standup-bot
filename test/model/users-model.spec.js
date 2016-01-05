@@ -6,7 +6,7 @@ var chai = require('chai')
 
 chai.use(require('sinon-chai'));
 
-describe.only('Users Model', function() {
+describe('Users Model', function() {
     var botMock
       , botController
       , UsersModel
