@@ -73,7 +73,7 @@ describe('Bot', function() {
     expect(controllerMock.startRTM).to.have.been.called;
 
     expect(usersModelMock.init).to.have.been.calledWith(controllerMock, fakeBot);
-    expect(standupModelMock.init).to.have.been.calledWith(controllerMock);
+    expect(standupModelMock.init).to.have.been.calledWith(controllerMock, fakeBot);
   });
 
   it('should initialize controllers', function() {

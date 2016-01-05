@@ -141,7 +141,7 @@ module.exports.use = function(controller) {
   function summarizeStandup(bot) {
     var sayConfig = {channel: standupChannel, text: 'Great job everyone! :tada:'};
 
-    standupModel.summarize(bot)
+    standupModel.summarize()
       .then(function() {
 
         sayConfig.text += ' You can find a summary in <#' + standupModel.getSummaryChannel() + '>';

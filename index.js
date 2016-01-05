@@ -19,7 +19,7 @@ controller.spawn({
   token: process.env.SLACK_API_TOKEN
 }).startRTM(function(err, bot) {
   require('./model/users-model').init(controller, bot);
-  require('./model/standup-model').init(controller);
+  require('./model/standup-model').init(controller, bot);
 });
 
 usersController.use(controller);

@@ -3,15 +3,17 @@ var q = require('q')
   , moment = require('moment')
   , statuses = []
   , summaryChannel
-  , getChannel
-  , saveChannel
+  , teamsGet
+  , teamsSave
+  , filesUpload
   , model = module.exports;
 
-model.init = function(controller) {
-  getChannel = q.nbind(controller.storage.teams.get, controller.storage.teams);
-  saveChannel = q.nbind(controller.storage.teams.save, controller.storage.teams);
+model.init = function(controller, bot) {
+  teamsGet = q.nbind(controller.storage.teams.get, controller.storage.teams);
+  teamsSave = q.nbind(controller.storage.teams.save, controller.storage.teams);
+  filesUpload = q.nbind(bot.api.files.upload, bot.api.files);
 
-  return getChannel('summarychannel')
+  return teamsGet('summarychannel')
     .then(function(sc) {
       if (sc) {
         summaryChannel = sc.channel;
@@ -21,7 +23,7 @@ model.init = function(controller) {
 
 model.setSummaryChannel = function(channel) {
   summaryChannel = channel;
-  return saveChannel({id: 'summarychannel', channel: channel});
+  return teamsSave({id: 'summarychannel', channel: channel});
 };
 
 model.getSummaryChannel = function() {
@@ -40,9 +42,8 @@ model.clearStatuses = function() {
   statuses = [];
 };
 
-model.summarize = function(bot) {
-  var upload = q.nbind(bot.api.files.upload, bot.api.files)
-    , today = moment().format('YYYY-MM-DD')
+model.summarize = function() {
+  var today = moment().format('YYYY-MM-DD')
     , title = 'Standup for ' + today
     , summaries = compileSummaries();
 
@@ -53,7 +54,7 @@ model.summarize = function(bot) {
       postTitle += ' (' + (index + 1) + ' of ' + summaries.length + ')';
     }
 
-    return upload({
+    return filesUpload({
       filetype: 'post',
       filename: postTitle,
       title: postTitle,
