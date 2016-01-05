@@ -65,14 +65,14 @@ module.exports.use = function(controller) {
    * Running Standup *
    *******************/
 
-  controller.hears(['yes', 'yea', 'yup', 'yep', 'ya', 'sure', 'ok', 'y', 'yeah', 'yah'], 'direct_mention,ambient', function(bot, message) {
+  controller.hears(['yes', 'yea', 'yup', 'yep', 'ya', 'sure', 'ok', 'yeah', 'yah', 'ready'], 'direct_mention,ambient', function(bot, message) {
     if (readyForNextStatus && message.user === currentUser.id) {
       readyForNextStatus = false;
       gatherStatus(bot, message);
     }
   });
 
-  controller.hears(['skip', 'no', 'nope', 'nah', 'n'], 'direct_mention,ambient', function(bot, message) {
+  controller.hears(['skip', 'no', 'nope', 'nah'], 'direct_mention,ambient', function(bot, message) {
     if (readyForNextStatus) {
       bot.reply(message, 'Skipping ' + currentUser.name);
       afterStatus(bot);
@@ -95,7 +95,7 @@ module.exports.use = function(controller) {
         multiple: true
       });
 
-      convo.ask('What are you doing today?', convoCallback, {
+      convo.ask('What are you working on now?', convoCallback, {
         key: 'today',
         multiple: true
       });
