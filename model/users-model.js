@@ -17,12 +17,10 @@ module.exports.init = function(controller, bot) {
       if (uids) {
         userIds = uids.userIds || [];
       }
+      return q.all(_.map(userIds, getUser));
     })
-    .finally(function() {
-      return q.all(_.map(userIds, getUser))
-        .then(function(us) {
-          users = sort(us || []);
-        });
+    .then(function(us) {
+      users = sort(us);
     });
 };
 
