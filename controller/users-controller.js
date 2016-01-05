@@ -10,25 +10,29 @@ module.exports.use = function(controller) {
       })
       .fail(function(err) {
         console.log(err);
-        return bot.reply(message, 'Oops! I wasn\'t able to add you right now, maybe try again in a minute');
+        bot.reply(message, 'Oops! I wasn\'t able to add you right now, maybe try again in a minute');
       });
   });
 
   // leave
   controller.hears(['leave', 'quit'], 'direct_mention', function(bot, message) {
-    usersModel.remove(message.user)
+    return usersModel.remove(message.user)
       .then(function(user) {
         if (user) {
           bot.reply(message, user.name + ' has left the team. Sorry to see you go!');
         } else {
           bot.reply(message, 'Um, this is awkward, but you weren\'t on the team to begin with :grimacing:');
         }
+      })
+      .fail(function(err) {
+        console.log(err);
+        bot.reply(message, 'Oops! I wasn\'t able to remove you right now, maybe try again in a minute');
       });
   });
 
   // kick/remove
   controller.hears(['kick (.*)', 'remove (.*)'], 'direct_mention', function(bot, message) {
-    var userId = message.match[1] || ''
+    var userId = message.match[1]
       , promise;
 
     if (userId.indexOf('<@') === 0) {
@@ -41,12 +45,16 @@ module.exports.use = function(controller) {
       promise = usersModel.removeByName(userId);
     }
 
-    promise.then(function(user) {
+    return promise.then(function(user) {
       if (user) {
         bot.reply(message, user.name + ' has been removed from the team. Sorry to see them go!');
       } else {
         bot.reply(message, 'Um, this is awkward, but they aren\'t on the team :grimacing:');
       }
+    })
+    .fail(function(err) {
+      console.log(err);
+      bot.reply(message, 'Oops! I wasn\'t able to remove them right now, maybe try again in a minute');
     });
   });
 
