@@ -49,7 +49,7 @@ describe('Bot', function() {
       './controller/summary-controller': summaryControllerMock,
       './controller/standup-controller': standupControllerMock,
       './controller/help-controller': helpControllerMock,
-      './lib/redis-storage': redisStorageMock,
+      'botkit-storage-redis': redisStorageMock,
       './model/users-model': usersModelMock,
       './model/standup-model': standupModelMock
     });

@@ -4,7 +4,7 @@ var Botkit = require('botkit')
   , standupController = require('./controller/standup-controller')
   , helpController = require('./controller/help-controller')
   , controller
-  , redisStorage = require('./lib/redis-storage')({
+  , redisStorage = require('botkit-storage-redis')({
       namespace: 'standup',
       url: process.env.REDIS_URL
     });
