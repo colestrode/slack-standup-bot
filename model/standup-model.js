@@ -11,7 +11,7 @@ model.init = function(controller) {
   getChannel = q.nbind(controller.storage.teams.get, controller.storage.teams);
   saveChannel = q.nbind(controller.storage.teams.save, controller.storage.teams);
 
-  getChannel('summarychannel')
+  return getChannel('summarychannel')
     .then(function(sc) {
       if (sc) {
         summaryChannel = sc.channel;
@@ -21,7 +21,7 @@ model.init = function(controller) {
 
 model.setSummaryChannel = function(channel) {
   summaryChannel = channel;
-  saveChannel({id: 'summarychannel', channel: channel});
+  return saveChannel({id: 'summarychannel', channel: channel});
 };
 
 model.getSummaryChannel = function() {

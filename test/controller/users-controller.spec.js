@@ -75,7 +75,7 @@ describe('User Controller', function() {
 
         return joinCallback(botMock, message)
           .then(function() {
-            expect(usersModelMock.add).to.have.been.calledWith(botMock, message.user);
+            expect(usersModelMock.add).to.have.been.calledWith(message.user);
             expect(console.log).not.to.have.been.called;
             expect(botMock.reply).to.have.been.called;
           });
@@ -89,7 +89,7 @@ describe('User Controller', function() {
 
         return joinCallback(botMock, message)
           .then(function() {
-            expect(usersModelMock.add).to.have.been.calledWith(botMock, message.user);
+            expect(usersModelMock.add).to.have.been.calledWith(message.user);
             expect(console.log).to.have.been.calledWith(err);
             expect(botMock.reply).to.have.been.called;
           });

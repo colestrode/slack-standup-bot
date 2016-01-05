@@ -1,37 +1,41 @@
 var _ = require('lodash')
   , q = require('q')
-  , getIds
-  , saveIds
+  , teamsGet
+  , teamsSave
+  , usersInfo
   , userIdsKey = 'userids'
   , userIds = [] // persisted
   , users = [];
 
 module.exports.init = function(controller, bot) {
-  getIds = q.nbind(controller.storage.teams.get, controller.storage.teams);
-  saveIds = q.nbind(controller.storage.teams.save, controller.storage.teams);
+  teamsGet = q.nbind(controller.storage.teams.get, controller.storage.teams);
+  teamsSave = q.nbind(controller.storage.teams.save, controller.storage.teams);
+  usersInfo = q.nbind(bot.api.users.info, bot.api.users);
 
-  return getIds(userIdsKey)
+  return teamsGet(userIdsKey)
     .then(function(uids) {
       if (uids) {
         userIds = uids.userIds || [];
       }
     })
     .finally(function() {
-      return q.all(_.map(userIds, _.partial(getUser, bot)))
+      return q.all(_.map(userIds, getUser))
         .then(function(us) {
-          users = us || [];
+          users = sort(us || []);
         });
     });
 };
 
-module.exports.add = function(bot, userId) {
-  return getUser(bot, userId)
+module.exports.add = function(userId) {
+  return getUser(userId)
     .then(function(user) {
       if (_.indexOf(userIds, userId) < 0) {
         userIds.push(userId);
         users.push(user);
 
-        saveIds({id: userIdsKey, userIds: userIds});
+        users = sort(users);
+
+        teamsSave({id: userIdsKey, userIds: userIds});
       }
       return user;
     });
@@ -44,7 +48,7 @@ module.exports.remove = function(userId) {
     return uid === userId;
   });
 
-  saveIds({id: userIdsKey, userIds: userIds});
+  teamsSave({id: userIdsKey, userIds: userIds});
   return q(removedUser.length ? removedUser[0] : undefined);
 };
 
@@ -71,7 +75,7 @@ module.exports.exists = function(userId) {
 };
 
 module.exports.iterator = function() {
-  var usersList = _.sortBy(_.cloneDeep(users), 'name') // cloning prevents the list being modified during iteration
+  var usersList = _.cloneDeep(users) // cloning prevents the list being modified during iteration
     , length = usersList.length
     , current = -1;
 
@@ -87,10 +91,12 @@ module.exports.iterator = function() {
   };
 };
 
-function getUser(bot, userId) {
-  var info = q.nbind(bot.api.users.info, bot.api.users);
+function sort(users) {
+  return _.sortBy(users, 'name');
+}
 
-  return info({user: userId})
+function getUser(userId) {
+  return usersInfo({user: userId})
     .then(function(res) {
       return res.user;
     });

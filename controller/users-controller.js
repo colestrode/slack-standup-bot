@@ -4,7 +4,7 @@ var usersModel = require('../model/users-model')
 module.exports.use = function(controller) {
   // join
   controller.hears('join', 'direct_mention', function(bot, message) {
-    return usersModel.add(bot, message.user)
+    return usersModel.add(message.user)
       .then(function(user) {
         bot.reply(message, 'You\'re on the roster ' + user.name + ' :thumbsup:');
       })
