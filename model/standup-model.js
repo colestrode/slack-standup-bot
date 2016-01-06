@@ -76,7 +76,7 @@ function compileSummaries() {
   _.each(statuses, function(status) {
     var summary = '##Status for ' + status.user.name + '##\n\n' +
         '_What did you do since the last standup?_\n\n' + markdownify(status.yesterday) + '\n\n' +
-        '_What did are you doing today?_\n\n' + markdownify(status.today) + '\n\n' +
+        '_What are you working on now?_\n\n' + markdownify(status.today) + '\n\n' +
         '_Anything in your way?_\n\n' + markdownify(status.obstacles) + '\n\n' +
         '----\n\n'
     ;
