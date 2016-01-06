@@ -1,17 +1,17 @@
+// jshint expr:true
 var chai = require('chai')
   , expect = chai.expect
   , sinon = require('sinon')
-  , helpers = require('../helpers')
   , path = require('path');
 
 chai.use(require('sinon-chai'));
 
 describe('Users Model', function() {
-    var botMock
-      , botController
-      , UsersModel
-      , userIds
-      , user;
+  var botMock
+    , botController
+    , UsersModel
+    , userIds
+    , user;
 
   beforeEach(function() {
     userIds = ['walterwhite'];
@@ -161,7 +161,7 @@ describe('Users Model', function() {
 
     beforeEach(function() {
       sinon.spy(UsersModel, 'remove');
-      return UsersModel.init(botController, botMock)
+      return UsersModel.init(botController, botMock);
     });
 
     afterEach(function() {

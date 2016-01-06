@@ -1,3 +1,4 @@
+// jshint expr:true
 var chai = require('chai')
   , expect = chai.expect
   , sinon = require('sinon');

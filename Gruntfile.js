@@ -17,6 +17,8 @@ module.exports = function(grunt) {
         'controller/**/*.js',
         'model/**/*.js',
         'lib/**/*.js',
+        'test/**/*.js',
+        '!test/reports/**/*.js',
         '*.js'
       ]
     },
@@ -25,6 +27,8 @@ module.exports = function(grunt) {
         'controller/**/*.js',
         'model/**/*.js',
         'lib/**/*.js',
+        'test/**/*.js',
+        '!test/reports/**/*.js',
         '*.js'
       ],
       options: {

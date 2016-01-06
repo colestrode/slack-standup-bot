@@ -1,9 +1,9 @@
+// jshint expr:true
 var chai = require('chai')
   , expect = chai.expect
   , sinon = require('sinon')
   , proxyquire = require('proxyquire')
   , _ = require('lodash')
-  , q = require('q')
   , helpers = require('../helpers');
 
 chai.use(require('sinon-chai'));
