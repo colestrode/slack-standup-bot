@@ -65,7 +65,7 @@ module.exports.use = function(controller) {
    * Running Standup *
    *******************/
 
-  controller.hears(['yes', 'yea', 'yup', 'yep', 'ya', 'sure', 'ok', 'yeah', 'yah', 'ready'], 'direct_mention,ambient', function(bot, message) {
+  controller.hears(['yes', 'yea', 'yup', 'yep', 'ya', 'sure', 'ok', 'yeah', 'yah', 'ready', 'sup'], 'direct_mention,ambient', function(bot, message) {
     if (readyForNextStatus && message.user === currentUser.id) {
       readyForNextStatus = false;
       gatherStatus(bot, message);
