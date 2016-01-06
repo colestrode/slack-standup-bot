@@ -2,7 +2,9 @@
 var chai = require('chai')
   , expect = chai.expect
   , sinon = require('sinon')
-  , proxyquire = require('proxyquire');
+  , proxyquire = require('proxyquire')
+  , _ = require('lodash')
+  , helpers = require('../helpers');
 
 chai.use(require('sinon-chai'));
 
@@ -23,7 +25,8 @@ describe('Summary Controller', function() {
     };
 
     standupModelMock = {
-      setSummaryChannel: sinon.stub()
+      setSummaryChannel: sinon.stub(),
+      getSummaryChannel: sinon.stub()
     };
 
     summaryController = proxyquire('../../controller/summary-controller', {
@@ -38,28 +41,65 @@ describe('Summary Controller', function() {
     expect(botController.hears.firstCall.args[2]).to.be.a.function;
   });
 
-  describe('summarize', function() {
-    var summarizeCallback
-      , message;
+  describe('hears', function() {
+    var hearsMap;
 
     beforeEach(function() {
       summaryController.use(botController);
-      summarizeCallback = botController.hears.firstCall.args[2];
-      message = {channel: 'robblerobble', match: ['walterwhite', 'heisenber']};
+      hearsMap = helpers.createHearsMap(botController);
     });
 
-    it('should use message channel if channel is in wrong format', function() {
-      summarizeCallback(botMock, message);
-      expect(botMock.reply).to.have.been.calledWithMatch(message);
-      expect(standupModelMock.setSummaryChannel).to.have.been.calledWith(message.channel);
+    describe('summarize to', function() {
+      var summarizeCallback
+        , message;
+
+      beforeEach(function() {
+        summaryController.use(botController);
+        summarizeCallback = _.find(hearsMap, function(val, key) {
+          return key.indexOf('(report|summarize)') === 0;
+        });
+        message = {channel: 'robblerobble', match: ['', '', '', 'heisenberg']};
+      });
+
+      it('should use message channel if channel is in wrong format', function() {
+        summarizeCallback(botMock, message);
+        expect(botMock.reply).to.have.been.calledWithMatch(message);
+        expect(standupModelMock.setSummaryChannel).to.have.been.calledWith(message.channel);
+      });
+
+      it('should use match if channel is in right format', function() {
+        message.match[3] = '<#heisenberg>';
+        summarizeCallback(botMock, message);
+        expect(botMock.reply).to.have.been.calledWithMatch(message);
+        expect(standupModelMock.setSummaryChannel).to.have.been.calledWith('heisenberg');
+      });
+
     });
 
-    it('should use match if channel is in right format', function() {
-      message.match = ['walterwhite', '<#heisenberg>'];
-      summarizeCallback(botMock, message);
-      expect(botMock.reply).to.have.been.calledWithMatch(message);
-      expect(standupModelMock.setSummaryChannel).to.have.been.calledWith('heisenberg');
-    });
+    describe('where do you summarize', function() {
+      var callback;
 
+      beforeEach(function() {
+        callback = _.find(hearsMap, function(val, key) {
+          return key.indexOf('where do you') === 0;
+        });
+      });
+
+      it('should reply if found', function() {
+        standupModelMock.getSummaryChannel.returns('crystalbluepersuasion');
+        callback(botMock, {});
+
+        expect(botMock.reply).to.have.been.called;
+        expect(botMock.reply.firstCall.args[1]).to.match(new RegExp('<#crystalbluepersuasion>'));
+      });
+
+      it('should reply if channel not found', function() {
+        standupModelMock.getSummaryChannel.returns(undefined);
+        callback(botMock, {});
+
+        expect(botMock.reply).to.have.been.called;
+        expect(botMock.reply.firstCall.args[1]).to.match(new RegExp('Nobody set a summary channel'));
+      });
+    });
   });
 });
