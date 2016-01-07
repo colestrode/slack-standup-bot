@@ -12,6 +12,7 @@ module.exports.use = function(controller) {
       '`' + botName + ' start`: Start a stand up\n' +
       '`' + botName + ' end`: End an stand up in progress. This is only if you want to end early, stand ups will end on their own once everyone has reported.\n' +
       '`' + botName + ' report in #channel`: Set a channel for me to post stand up reports in. By default I\'ll use the channel the stand up started in. You only have to tell me once, I have a pretty good memory.\n' +
+      '`' + botName + ' where do you report?`: I\'ll tell you where I\'ll post summary reports to.\n' +
       '`skip`: Use this during a stand up to skip a user.\n' +
       '\n' +
       '_Adding and removing members:_\n' +

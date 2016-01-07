@@ -9,8 +9,7 @@ After everyone has checked in, I'll post a summary message in a channel of your 
 using the `report in` command (details down there in the Commands section). 
 Just make sure to invite me to the reporting channel first, I may be a robot but I still have feelings.  
 
-If the summary is too long, I'll split it across a few posts. These are true Slack Posts, so you can use markdown to format your status.
-Plus they're fully searchable!
+If the summary is too long, I'll split it across a few posts. These are true Slack Posts, so searchable and support markdown.
 
 ## Commands
 Type `@bot help` to get a list of these commands.
@@ -23,6 +22,8 @@ _Running a stand up:_
 
 `@bot report in #channel`: Set a channel for post stand up reports. By default I'll use the channel the stand up started in.
 I have a pretty good memory, so you only need to tell me once :)
+
+`@bot where do you report?`: I'll tell you the which channel I'll post summary reports to..
 
 `skip`: Use this during a stand up to skip a user.
 
