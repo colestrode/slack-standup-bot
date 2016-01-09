@@ -33,7 +33,6 @@ describe('User Controller', function() {
       list: sinon.stub().returns([user])
     };
 
-
     userController = proxyquire('../../controller/users-controller', {
       '../model/users-model': usersModelMock
     });
