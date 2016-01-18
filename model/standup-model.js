@@ -18,6 +18,7 @@ model.init = function(controller, bot) {
       if (sc) {
         summaryChannel = sc.channel;
       }
+      return summaryChannel;
     });
 };
 
@@ -46,7 +47,6 @@ model.summarize = function() {
   var today = moment().format('YYYY-MM-DD')
     , title = 'Standup for ' + today
     , summaries = compileSummaries();
-
 
   return q.all(_.map(summaries, function(summary, index) {
     var postTitle = title;
