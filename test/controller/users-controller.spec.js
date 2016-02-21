@@ -2,7 +2,7 @@
 var chai = require('chai')
   , expect = chai.expect
   , sinon = require('sinon')
-  , proxyquire = require('proxyquire')
+  , proxyquire = require('proxyquire').noCallThru()
   , _ = require('lodash')
   , helpers = require('../helpers');
 
@@ -33,7 +33,7 @@ describe('User Controller', function() {
       list: sinon.stub().returns([user])
     };
 
-    userController = proxyquire('../../controller/users-controller', {
+    userController = proxyquire('../../src/controller/users-controller', {
       '../model/users-model': usersModelMock
     });
   });

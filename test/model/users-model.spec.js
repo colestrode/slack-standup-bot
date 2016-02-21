@@ -34,8 +34,8 @@ describe('Users Model', function() {
       }
     };
 
-    delete require.cache[path.resolve('./model/users-model.js')];
-    UsersModel = require('../../model/users-model');
+    delete require.cache[path.resolve('./src/model/users-model.js')];
+    UsersModel = require('../../src/model/users-model');
   });
 
   describe('init', function() {
