@@ -20,7 +20,7 @@ describe('Help Controller', function() {
       hears: sinon.stub()
     };
 
-    helpController = require('../../controller/help-controller');
+    helpController = require('../../src/controller/help-controller');
   });
 
   it('should register a help listener', function() {

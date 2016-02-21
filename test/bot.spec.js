@@ -2,7 +2,7 @@
 var chai = require('chai')
   , expect = chai.expect
   , sinon = require('sinon')
-  , proxyquire = require('proxyquire');
+  , proxyquire = require('proxyquire').noCallThru();
 
 chai.use(require('sinon-chai'));
 
@@ -44,7 +44,7 @@ describe('Bot', function() {
     process.env.REDIS_URL = 'REDIS_URL';
     process.env.SLACK_API_TOKEN = 'SLACK_API_TOKEN';
 
-    Bot = proxyquire('../index', {
+    Bot = proxyquire('../src/index', {
       'botkit': botkitMock,
       './controller/users-controller': usersControllerMock,
       './controller/summary-controller': summaryControllerMock,
