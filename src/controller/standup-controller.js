@@ -1,5 +1,5 @@
-var usersModel = require('./users-model')
-  , standupModel = require('./standup-model')
+var usersModel = require('../model/users-model')
+  , standupModel = require('../model/standup-model')
   , readyForNextStatus = false
   , standupHappening = false
   , standupChannel
