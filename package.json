@@ -4,6 +4,7 @@
   "description": "Standup Bot for Slack",
   "main": "index.js",
   "scripts": {
+    "start": "npm run bot",
     "bot": "node index.js",
     "ci": "npm test && cat ./coverage/lcov.info | coveralls",
     "unit-test": "istanbul cover --report lcov --dir ./coverage/ _mocha --recursive ./test --grep ./test/**/*.spec.js -- --colors --reporter spec",
