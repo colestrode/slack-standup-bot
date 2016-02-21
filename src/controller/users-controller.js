@@ -65,7 +65,7 @@ module.exports.use = function(controller) {
     if (!users.length) {
       bot.reply(message, 'Nobody! I\'m all alone! :crying_cat_face:');
     } else {
-      bot.reply(message, 'Current members: ' + _.pluck(users, 'name').join(', '));
+      bot.reply(message, 'Current members: ' + _.map(users, 'name').join(', '));
     }
   });
 };
