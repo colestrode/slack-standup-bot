@@ -1,5 +1,7 @@
 # Slack Stand-Up Bot
-[![Build Status](https://travis-ci.org/colestrode/slack-standup-bot.svg?branch=master)](https://travis-ci.org/colestrode/slack-standup-bot) [![Dependcies](https://david-dm.org/colestrode/slack-standup-bot.svg)](https://david-dm.org/colestrode/slack-standup-bot)
+[![Build Status](https://travis-ci.org/colestrode/slack-standup-bot.svg?branch=master)](https://travis-ci.org/colestrode/slack-standup-bot)
+[![Coverage Status](https://coveralls.io/repos/github/colestrode/slack-standup-bot/badge.svg?branch=master)](https://coveralls.io/github/colestrode/slack-standup-bot?branch=master)
+[![Dependcies](https://david-dm.org/colestrode/slack-standup-bot.svg)](https://david-dm.org/colestrode/slack-standup-bot)
 
 Hi! I'm a friendly Slack bot who will run stand ups for you! I'll even summarize everything and post summaries in the channel of your choosing!
 
