@@ -5,8 +5,9 @@
   "main": "index.js",
   "scripts": {
     "bot": "node index.js",
-    "ci": "grunt ci",
-    "test": "grunt test"
+    "ci": "npm test && cat ./coverage/lcov.info | coveralls",
+    "pretest": "jscs index.js ./src ./test",
+    "test": "istanbul cover --report lcov --dir ./coverage/ _mocha --recursive ./test --grep ./test/**/*.spec.js -- --colors --reporter spec"
   },
   "engines": {
     "node": "0.12.7"
@@ -36,6 +37,7 @@
   },
   "devDependencies": {
     "chai": "^3.4.1",
+    "coveralls": "^2.11.6",
     "grunt": "^0.4.5",
     "grunt-contrib-jshint": "^0.11.3",
     "grunt-coveralls": "^1.0.0",
