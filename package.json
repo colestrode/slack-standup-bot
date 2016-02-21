@@ -4,6 +4,7 @@
   "description": "Standup Bot for Slack",
   "main": "index.js",
   "scripts": {
+    "start": "npm run bot",
     "bot": "node index.js",
     "ci": "npm test && cat ./coverage/lcov.info | coveralls",
     "unit-test": "istanbul cover --report lcov --dir ./coverage/ _mocha --recursive ./test --grep ./test/**/*.spec.js -- --colors --reporter spec",
@@ -28,7 +29,7 @@
   "author": "Cole Furfaro-Strode",
   "license": "ISC",
   "dependencies": {
-    "botkit": "0.0.5",
+    "botkit": "0.0.7",
     "botkit-storage-redis": "^1.0.0",
     "express": "^4.13.3",
     "lodash": "^4.5.0",
