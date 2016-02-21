@@ -33,8 +33,8 @@ describe('Standup Model', function() {
       }
     };
 
-    delete require.cache[path.resolve('./model/standup-model.js')];
-    StandupModel = require('../../model/standup-model');
+    delete require.cache[path.resolve('./src/model/standup-model.js')];
+    StandupModel = require('../../src/model/standup-model');
   });
 
   describe('init', function() {

@@ -2,7 +2,7 @@
 var chai = require('chai')
   , expect = chai.expect
   , sinon = require('sinon')
-  , proxyquire = require('proxyquire')
+  , proxyquire = require('proxyquire').noCallThru()
   , _ = require('lodash')
   , helpers = require('../helpers');
 
@@ -29,7 +29,7 @@ describe('Summary Controller', function() {
       getSummaryChannel: sinon.stub()
     };
 
-    summaryController = proxyquire('../../controller/summary-controller', {
+    summaryController = proxyquire('../../src/controller/summary-controller', {
       '../model/standup-model': standupModelMock
     });
   });
