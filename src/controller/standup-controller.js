@@ -1,5 +1,6 @@
 var usersModel = require('../model/users-model')
   , standupModel = require('../model/standup-model')
+  , q = require('q')
   , readyForNextStatus = false
   , standupHappening = false
   , standupChannel
@@ -46,8 +47,10 @@ module.exports.use = function(controller) {
       convo.ask('<@' + message.user + '> do you want a summary of this standup?', [{
           pattern: bot.utterances.yes,
           callback: function(response, convo) {
-            summarizeStandup(bot);
-            convo.next();
+            return summarizeStandup(bot)
+              .finally(function() {
+                convo.next();
+              });
           }
         }, {
           pattern: bot.utterances.no,
@@ -75,8 +78,9 @@ module.exports.use = function(controller) {
   controller.hears(['skip', 'no', 'nope', 'nah'], 'direct_mention,ambient', function(bot, message) {
     if (readyForNextStatus) {
       bot.reply(message, 'Skipping ' + currentUser.name);
-      afterStatus(bot);
+      return afterStatus(bot);
     }
+    return q(); // for testing
   });
 
   function promptUser(bot) {
@@ -117,7 +121,7 @@ module.exports.use = function(controller) {
           });
         }
 
-        afterStatus(bot);
+        return afterStatus(bot);
       });
 
       function convoCallback(response, convo) {
@@ -131,19 +135,19 @@ module.exports.use = function(controller) {
     if (userIterator.hasNext()) {
       currentUser = userIterator.next();
       promptUser(bot);
+      return q();
     } else {
-      summarizeStandup(bot);
       standupHappening = false;
       readyForNextStatus = false;
+      return summarizeStandup(bot);
     }
   }
 
   function summarizeStandup(bot) {
     var sayConfig = {channel: standupChannel, text: 'Great job everyone! :tada:'};
 
-    standupModel.summarize()
+    return standupModel.summarize()
       .then(function() {
-
         sayConfig.text += ' You can find a summary in <#' + standupModel.getSummaryChannel() + '>';
         bot.say(sayConfig);
       })
