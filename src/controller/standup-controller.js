@@ -78,8 +78,9 @@ module.exports.use = function(controller) {
   controller.hears(['skip', 'no', 'nope', 'nah'], 'direct_mention,ambient', function(bot, message) {
     if (readyForNextStatus) {
       bot.reply(message, 'Skipping ' + currentUser.name);
-      afterStatus(bot);
+      return afterStatus(bot);
     }
+    return q(); // for testing
   });
 
   function promptUser(bot) {
@@ -120,7 +121,7 @@ module.exports.use = function(controller) {
           });
         }
 
-        afterStatus(bot);
+        return afterStatus(bot);
       });
 
       function convoCallback(response, convo) {
