@@ -32,7 +32,7 @@
     "botkit": "0.0.15",
     "botkit-storage-redis": "^1.0.0",
     "express": "^4.13.3",
-    "lodash": "^4.8.0",
+    "lodash": "^4.9.0",
     "moment": "^2.10.6",
     "q": "^1.4.1",
     "redis": "^2.5.1"
