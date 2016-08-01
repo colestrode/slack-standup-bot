@@ -43,7 +43,7 @@
     "istanbul": "^0.4.1",
     "jscs": "^3.0.2",
     "jshint": "^2.9.1",
-    "mocha": "^2.5.1",
+    "mocha": "^3.0.0",
     "proxyquire": "^1.7.3",
     "sinon": "^1.17.2",
     "sinon-chai": "^2.8.0",
