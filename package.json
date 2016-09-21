@@ -1,6 +1,6 @@
 {
   "name": "slack-standup-bot",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Standup Bot for Slack",
   "main": "index.js",
   "scripts": {
