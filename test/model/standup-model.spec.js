@@ -158,8 +158,6 @@ describe('Standup Model', function() {
       };
       StandupModel.addStatus(status);
 
-      sinon.spy(StandupModel, 'clearStatuses');
-
       return StandupModel.summarize()
         .then(function() {
           expect(botMock.api.files.upload).to.have.been.calledOnce;
@@ -169,7 +167,6 @@ describe('Standup Model', function() {
             title: title,
             channels: 'superlab'
           });
-          expect(StandupModel.clearStatuses).to.have.been.called;
         });
     });
 
@@ -188,8 +185,6 @@ describe('Standup Model', function() {
         obstacles: 'walter'
       });
 
-      sinon.spy(StandupModel, 'clearStatuses');
-
       return StandupModel.summarize()
         .then(function() {
           expect(botMock.api.files.upload).to.have.been.calledTwice;
@@ -205,8 +200,6 @@ describe('Standup Model', function() {
             title: title + ' (2 of 2)',
             channels: 'superlab'
           });
-
-          expect(StandupModel.clearStatuses).to.have.been.called;
         });
     });
 
@@ -239,7 +232,6 @@ describe('Standup Model', function() {
 
       StandupModel.addStatus(status);
 
-      sinon.spy(StandupModel, 'clearStatuses');
       botMock.api.files.upload.yields(error);
 
       return StandupModel.summarize()
@@ -248,7 +240,6 @@ describe('Standup Model', function() {
         })
         .fail(function(err) {
           expect(err.message).to.equal('DINGDINGBOOM');
-          expect(StandupModel.clearStatuses).to.have.been.called;
         });
     });
   });
