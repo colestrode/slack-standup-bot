@@ -1,5 +1,5 @@
 module.exports.use = function(controller) {
-  controller.hears('help', 'direct_mention', function(bot, message) {
+  controller.hears('help', ['direct_message', 'direct_mention'], function(bot, message) {
     var botName = '@' + bot.identity.name
       , helpMessage;
 

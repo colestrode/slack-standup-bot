@@ -64,10 +64,33 @@ model.summarize = function() {
       console.log(err);
       throw err;
     });
-  })).finally(function() {
-    model.clearStatuses();
-  });
+  }))
 };
+
+model.summarizeUser = function(username) {
+  var summary = ''
+  var postTitle = 'Summary for ' + username + '\n\n'
+  _.each(statuses, function(status) {
+    if (status.user.name == username) {
+      summary = '##Status for ' + status.user.name + '##\n\n' +
+        '_What did you do since the last standup?_\n\n' + markdownify(status.yesterday) + '\n\n' +
+        '_What are you working on now?_\n\n' + markdownify(status.today) + '\n\n' +
+        '_Anything in your way?_\n\n' + markdownify(status.obstacles) + '\n\n' +
+        '----\n\n';
+    }
+  });
+  // TODO test that summary got populated
+  return filesUpload({
+    filetype: 'post',
+    filename: postTitle,
+    title: postTitle,
+    content: summary,
+    channels: summaryChannel
+  }).fail(function(err) {
+    console.log(err);
+    throw err;
+  });
+}
 
 function compileSummaries() {
   var summaries = []

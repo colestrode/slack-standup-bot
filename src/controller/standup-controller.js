@@ -1,11 +1,10 @@
 var usersModel = require('../model/users-model')
   , standupModel = require('../model/standup-model')
   , q = require('q')
-  , readyForNextStatus = false
   , standupHappening = false
   , standupChannel
-  , currentUser
-  , userIterator;
+  , userIterator
+  , silentUsers = [];
 
 module.exports.use = function(controller) {
   controller.hears('start', 'direct_mention', function(bot, message) {
@@ -27,10 +26,12 @@ module.exports.use = function(controller) {
     standupHappening = true;
     bot.reply(message, 'Alright! Let\'s get this party started!');
 
-    // notify first user and start a conversation
+    // notify all users over DM
     userIterator = usersModel.iterator();
-    currentUser = userIterator.next();
-    promptUser(bot);
+    while (eachUser = userIterator.next()) {
+      silentUsers.push(eachUser.name);
+      gatherStatus(bot, eachUser);
+    }
   });
 
   controller.hears('end', 'direct_mention', function(bot, message) {
@@ -38,78 +39,51 @@ module.exports.use = function(controller) {
       return bot.reply(message, 'Standup is already over! Start another one with `start`');
     }
 
-    readyForNextStatus = false;
     standupHappening = false;
 
     bot.reply(message, 'Standup is over!');
-
-    bot.startConversation(message, function(err, convo) {
-      convo.ask('<@' + message.user + '> do you want a summary of this standup?', [{
-          pattern: bot.utterances.yes,
-          callback: function(response, convo) {
-            return summarizeStandup(bot)
-              .finally(function() {
-                convo.next();
-              });
-          }
-        }, {
-          pattern: bot.utterances.no,
-          callback: function(response, convo) {
-            bot.say({channel: message.channel, text: 'Ok :hear_no_evil: Come again soon!'});
-            standupModel.clearStatuses();
-            convo.next();
-          }
-        }]);
-    });
+    summarizeStandup(bot);
+    standupModel.clearStatuses();
   });
 
+  controller.hears('report', 'direct_mention', function(bot, message) {
+    standupModel.summarize(bot);
+    if (silentUsers.length > 0) {
+      bot.reply(message, 'The following users have not replied: ' + silentUsers.toString())
+    }
+  });
 
   /*******************
    * Running Standup *
    *******************/
 
-  controller.hears(['yes', 'yea', 'yup', 'yep', 'ya', 'sure', 'ok', 'yeah', 'yah', 'ready', 'sup'], 'direct_mention,ambient', function(bot, message) {
-    if (readyForNextStatus && message.user === currentUser.id) {
-      readyForNextStatus = false;
-      gatherStatus(bot, message);
-    }
-  });
+  function gatherStatus(bot, eachUser) {
+    bot.startPrivateConversation({
+                                  user:eachUser.id,
+                                  channel: eachUser.id,
+                                 },
+                                 function(err, convo) {
 
-  controller.hears(['skip', 'no', 'nope', 'nah'], 'direct_mention,ambient', function(bot, message) {
-    if (readyForNextStatus) {
-      bot.reply(message, 'Skipping ' + currentUser.name);
-      return afterStatus(bot);
-    }
-    return q(); // for testing
-  });
-
-  function promptUser(bot) {
-    readyForNextStatus = true;
-    bot.say({
-      text: '<@' + currentUser.id + '> are you ready?',
-      channel: standupChannel
-    });
-  }
-
-  function gatherStatus(bot, message) {
-    bot.startConversation(message, function(err, convo) {
-
+      convo.say('Heya! Time for standup!');
       convo.ask('What have you done since the last standup?', convoCallback, {
+        channel: eachUser.id,
         key: 'yesterday',
         multiple: true
       });
 
       convo.ask('What are you working on now?', convoCallback, {
+        channel: eachUser.id,
         key: 'today',
         multiple: true
       });
 
       convo.ask('Anything in your way?', convoCallback, {
+        channel: eachUser.id,
         key: 'obstacles',
         multiple: true
       });
 
-      convo.say('Great! Thanks ' + currentUser.name + '!');
+      convo.say('Great! Thanks ' + eachUser.name + '!');
 
       convo.on('end', function(convo) {
         if (convo.status === 'completed') {
@@ -117,11 +91,11 @@ module.exports.use = function(controller) {
             yesterday: convo.extractResponse('yesterday'),
             today: convo.extractResponse('today'),
             obstacles: convo.extractResponse('obstacles'),
-            user: currentUser
+            user: eachUser
           });
         }
 
-        return afterStatus(bot);
+        return afterStatus(bot, eachUser);
       });
 
       function convoCallback(response, convo) {
@@ -130,17 +104,18 @@ module.exports.use = function(controller) {
     });
   }
 
-  function afterStatus(bot) {
-    // get next user, if null summarize
-    if (userIterator.hasNext()) {
-      currentUser = userIterator.next();
-      promptUser(bot);
-      return q();
-    } else {
-      standupHappening = false;
-      readyForNextStatus = false;
-      return summarizeStandup(bot);
+  function afterStatus(bot, eachUser) {
+    var errConfig = {channel: standupChannel, text: 'Error showing status for ' + eachUser.name}
+    var idx = silentUsers.indexOf(eachUser.name);
+    if (idx > -1) {
+      silentUsers.splice(idx, 1);
     }
+    return standupModel.summarizeUser(eachUser.name)
+        .fail(function(err) {
+          console.log(err);
+          bot.say({text: 'error showing your status!', channel: eachUser.id})
+          return bot.say(errConfig);
+        });
   }
 
   function summarizeStandup(bot) {

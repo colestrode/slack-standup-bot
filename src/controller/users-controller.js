@@ -3,7 +3,7 @@ var usersModel = require('../model/users-model')
 
 module.exports.use = function(controller) {
   // join
-  controller.hears('join', 'direct_mention', function(bot, message) {
+  controller.hears('join', ['direct_message', 'direct_mention'], function(bot, message) {
     return usersModel.add(message.user)
       .then(function(user) {
         bot.reply(message, 'You\'re on the roster ' + user.name + ' :thumbsup:');
@@ -15,7 +15,7 @@ module.exports.use = function(controller) {
   });
 
   // leave
-  controller.hears(['leave', 'quit'], 'direct_mention', function(bot, message) {
+  controller.hears(['leave', 'quit'], ['direct_message', 'direct_mention'], function(bot, message) {
     return usersModel.remove(message.user)
       .then(function(user) {
         if (user) {
@@ -31,7 +31,7 @@ module.exports.use = function(controller) {
   });
 
   // kick/remove
-  controller.hears(['kick (.*)', 'remove (.*)'], 'direct_mention', function(bot, message) {
+  controller.hears(['kick (.*)', 'remove (.*)'], ['direct_message', 'direct_mention'], function(bot, message) {
     var userId = message.match[1]
       , promise;
 
@@ -59,7 +59,7 @@ module.exports.use = function(controller) {
   });
 
   // list participants
-  controller.hears(['list', 'participants', 'members', 'team'], 'direct_mention', function(bot, message) {
+  controller.hears(['list', 'participants', 'members', 'team'], ['direct_message', 'direct_mention'], function(bot, message) {
     var users = usersModel.list();
 
     if (!users.length) {
