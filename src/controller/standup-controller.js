@@ -39,11 +39,17 @@ module.exports.use = function(controller) {
       return bot.reply(message, 'Standup is already over! Start another one with `start`');
     }
 
+    if (silentUsers.length > 0) {
+      bot.reply(message, 'The following users have not checked in, their input' +
+                         'will be logged, but will not be in the report: ' + silentUsers.toString())
+    }
+
     standupHappening = false;
 
     bot.reply(message, 'Standup is over!');
     summarizeStandup(bot);
     standupModel.clearStatuses();
+    silentUsers = []
   });
 
   controller.hears('report', 'direct_mention', function(bot, message) {
