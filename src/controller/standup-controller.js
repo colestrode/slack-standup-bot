@@ -1,6 +1,5 @@
 var usersModel = require('../model/users-model')
   , standupModel = require('../model/standup-model')
-  , q = require('q')
   , standupHappening = false
   , standupChannel
   , userIterator
@@ -8,7 +7,7 @@ var usersModel = require('../model/users-model')
 
 module.exports.use = function(controller) {
   controller.hears('start', 'direct_mention', function(bot, message) {
-
+    var eachUser;
     if (standupHappening) {
       return bot.reply(message, 'Standup has already started!');
     }
@@ -28,7 +27,8 @@ module.exports.use = function(controller) {
 
     // notify all users over DM
     userIterator = usersModel.iterator();
-    while (eachUser = userIterator.next()) {
+    while (userIterator.hasNext()) {
+      eachUser = userIterator.next();
       silentUsers.push(eachUser.name);
       gatherStatus(bot, eachUser);
     }
@@ -41,7 +41,7 @@ module.exports.use = function(controller) {
 
     if (silentUsers.length > 0) {
       bot.reply(message, 'The following users have not checked in, their input' +
-                         'will be logged, but will not be in the report: ' + silentUsers.toString())
+                         'will be logged, but will not be in the report: ' + silentUsers.toString());
     }
 
     standupHappening = false;
@@ -49,13 +49,13 @@ module.exports.use = function(controller) {
     bot.reply(message, 'Standup is over!');
     summarizeStandup(bot);
     standupModel.clearStatuses();
-    silentUsers = []
+    silentUsers = [];
   });
 
   controller.hears('report', 'direct_mention', function(bot, message) {
     standupModel.summarize(bot);
     if (silentUsers.length > 0) {
-      bot.reply(message, 'The following users have not replied: ' + silentUsers.toString())
+      bot.reply(message, 'The following users have not replied: ' + silentUsers.toString());
     }
   });
 
@@ -65,10 +65,10 @@ module.exports.use = function(controller) {
 
   function gatherStatus(bot, eachUser) {
     bot.startPrivateConversation({
-                                  user:eachUser.id,
-                                  channel: eachUser.id,
-                                 },
-                                 function(err, convo) {
+                                user: eachUser.id,
+                                channel: eachUser.id
+                              },
+                               function(err, convo) {
 
       convo.say('Heya! Time for standup!');
       convo.ask('What have you done since the last standup?', convoCallback, {
@@ -112,14 +112,14 @@ module.exports.use = function(controller) {
 
   function afterStatus(bot, eachUser) {
     var errConfig = {channel: standupChannel, text: 'Error showing status for ' + eachUser.name}
-    var idx = silentUsers.indexOf(eachUser.name);
+    , idx = silentUsers.indexOf(eachUser.name);
     if (idx > -1) {
       silentUsers.splice(idx, 1);
     }
     return standupModel.summarizeUser(eachUser.name)
         .fail(function(err) {
           console.log(err);
-          bot.say({text: 'error showing your status!', channel: eachUser.id})
+          bot.say({text: 'error showing your status!', channel: eachUser.id});
           return bot.say(errConfig);
         });
   }
