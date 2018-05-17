@@ -64,14 +64,14 @@ model.summarize = function() {
       console.log(err);
       throw err;
     });
-  }))
+  }));
 };
 
 model.summarizeUser = function(username) {
   var summary = ''
-  var postTitle = 'Summary for ' + username + '\n\n'
+  , postTitle = 'Summary for ' + username + '\n\n';
   _.each(statuses, function(status) {
-    if (status.user.name == username) {
+    if (status.user.name === username) {
       summary = '##Status for ' + status.user.name + '##\n\n' +
         '_What did you do since the last standup?_\n\n' + markdownify(status.yesterday) + '\n\n' +
         '_What are you working on now?_\n\n' + markdownify(status.today) + '\n\n' +
@@ -90,7 +90,7 @@ model.summarizeUser = function(username) {
     console.log(err);
     throw err;
   });
-}
+};
 
 function compileSummaries() {
   var summaries = []
