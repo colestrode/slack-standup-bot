@@ -112,13 +112,13 @@ describe('Standup Controller', function() {
         expect(startCallback).to.exist;
       });
 
-      it('should summarize', function() {
+      it('should complain when called on to report without a standup', function() {
         reportCallback(botMock, messageMock);
-        expect(standupModelMock.summarize).to.have.been.called;
-        expect(botMock.reply).not.to.have.been.called;
+        expect(botMock.reply).to.have.been.calledWithMatch(messageMock, /no standup/);
+        expect(standupModelMock.summarize).not.to.have.been.called;
       });
 
-      it('should print silent users', function() {
+      it('should summarize and print silent users', function() {
         startCallback(botMock, messageMock);
         reportCallback(botMock, messageMock);
         expect(standupModelMock.summarize).to.have.been.called;

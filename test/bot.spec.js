@@ -14,8 +14,6 @@ describe('Bot', function() {
     , helpControllerMock
     , usersModelMock
     , standupModelMock
-    , redisStorageMock
-    , storageObjMock
     , controllerMock
     , Bot;
 
@@ -38,11 +36,9 @@ describe('Bot', function() {
     usersModelMock = {init: sinon.stub()};
     standupModelMock = {init: sinon.stub()};
 
-    storageObjMock = {};
-    redisStorageMock = sinon.stub().returns(storageObjMock);
-
     process.env.REDIS_URL = 'REDIS_URL';
     process.env.SLACK_API_TOKEN = 'SLACK_API_TOKEN';
+    process.env.JSON_FILE_STORE_PATH = 'test';
 
     Bot = proxyquire('../src/index', {
       'botkit': botkitMock,
@@ -50,21 +46,13 @@ describe('Bot', function() {
       './controller/summary-controller': summaryControllerMock,
       './controller/standup-controller': standupControllerMock,
       './controller/help-controller': helpControllerMock,
-      'botkit-storage-redis': redisStorageMock,
       './model/users-model': usersModelMock,
       './model/standup-model': standupModelMock
     });
   });
 
-  it('should initialize redis storage', function() {
-    expect(redisStorageMock).to.have.been.calledWith({
-      namespace: 'standup',
-      url: process.env.REDIS_URL
-    });
-  });
-
   it('should create the controller', function() {
-    expect(botkitMock.slackbot).to.have.been.calledWithMatch({storage: storageObjMock});
+    expect(botkitMock.slackbot).to.have.been.calledWithMatch({json_file_store: process.env.JSON_FILE_STORE_PATH}); // jshint ignore:line
   });
 
   it('should startRTM', function() {

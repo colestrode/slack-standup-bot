@@ -3,15 +3,12 @@ var Botkit = require('botkit')
   , summaryController = require('./controller/summary-controller')
   , standupController = require('./controller/standup-controller')
   , helpController = require('./controller/help-controller')
-  , controller
-  , redisStorage = require('botkit-storage-redis')({
-      namespace: 'standup',
-      url: process.env.REDIS_URL
-    });
+  , controller;
 
+// linter doesn't like that botkit isn't using camel case, sigh
 controller = Botkit.slackbot({
   debug: false,
-  storage: redisStorage
+  json_file_store: process.env.JSON_FILE_STORE_PATH // jshint ignore:line
 });
 
 // connect the bot to a stream of messages

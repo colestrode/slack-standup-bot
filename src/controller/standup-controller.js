@@ -53,6 +53,11 @@ module.exports.use = function(controller) {
   });
 
   controller.hears('report', 'direct_mention', function(bot, message) {
+    if (!standupHappening) {
+      bot.reply(message, 'There is no standup happening right now!');
+      return;
+    }
+
     standupModel.summarize(bot);
     if (silentUsers.length > 0) {
       bot.reply(message, 'The following users have not replied: ' + silentUsers.toString());

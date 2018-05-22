@@ -52,4 +52,4 @@ Then you'll need to set two environment variables on your server:
 
 `SLACK_API_TOKEN`: Your Slack API token that you got from the Slack bot page.
 
-`REDIS_URL`: The URL to the Redis server that I'll use for my tremendous robot brain (don't worry, I don't put much there).
+`JSON_FILE_STORE_PATH`: A local path for me to use to store what I need to store
