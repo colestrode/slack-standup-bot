@@ -13,10 +13,16 @@ controller = Botkit.slackbot({
 
 // connect the bot to a stream of messages
 controller.spawn({
-  token: process.env.SLACK_API_TOKEN
+  token: process.env.SLACK_API_TOKEN,
+  retry: 500
 }).startRTM(function(err, bot) {
   require('./model/users-model').init(controller, bot);
   require('./model/standup-model').init(controller, bot);
+});
+
+controller.on('rtm_close', function() {
+  console.log('Oh coconuts! The connection died');
+  process.exit(1);
 });
 
 usersController.use(controller);
