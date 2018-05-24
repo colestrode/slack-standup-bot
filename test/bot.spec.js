@@ -19,6 +19,7 @@ describe('Bot', function() {
 
   beforeEach(function() {
     controllerMock = {
+      on: sinon.stub(),
       spawn: sinon.stub(),
       startRTM: sinon.stub()
     };
@@ -58,7 +59,7 @@ describe('Bot', function() {
   it('should startRTM', function() {
     var fakeBot = {};
     controllerMock.startRTM.yield(null, fakeBot);
-    expect(controllerMock.spawn).to.have.been.calledWith({token: process.env.SLACK_API_TOKEN});
+    expect(controllerMock.spawn).to.have.been.calledWith({token: process.env.SLACK_API_TOKEN, retry: 500});
     expect(controllerMock.startRTM).to.have.been.called;
 
     expect(usersModelMock.init).to.have.been.calledWith(controllerMock, fakeBot);
