@@ -60,6 +60,7 @@ describe('Standup Controller', function() {
       getSummaryChannel: sinon.stub().returns('Netflix'),
       setSummaryChannel: sinon.stub(),
       addStatus: sinon.stub(),
+      getStatuses: sinon.stub(),
       clearStatuses: sinon.stub(),
       summarizeUser: sinon.stub().returns(q()),
       summarize: sinon.stub().returns(q())
@@ -141,13 +142,12 @@ describe('Standup Controller', function() {
         callback(botMock, messageMock);
 
         expect(botMock.reply).to.have.been.calledWithMatch(messageMock, /^Alright!/);
+        expect(standupModelMock.getStatuses).to.have.been.called;
         expect(standupModelMock.getSummaryChannel).to.have.been.called;
         expect(standupModelMock.setSummaryChannel).not.to.have.been.called;
         expect(usersModelMock.list).to.have.been.called;
         expect(usersModelMock.iterator).to.have.been.called;
         expect(userIterator.next).to.have.been.called;
-        expect(botMock.reply).to.have.been.calledWithMatch(messageMock, /Alright/);
-
       });
 
       it('should set a summary channel if one is not already set', function() {
@@ -158,6 +158,12 @@ describe('Standup Controller', function() {
         expect(botMock.reply).to.have.been.calledWithMatch(messageMock, /^Alright!/);
         expect(standupModelMock.getSummaryChannel).to.have.been.called;
         expect(standupModelMock.setSummaryChannel).to.have.been.calledWith(messageMock.channel);
+      });
+
+      it('should not start if a standup is there are statuses', function() {
+        standupModelMock.getStatuses.returns([]);
+        callback(botMock, messageMock);
+        expect(botMock.reply).to.have.been.calledWithMatch(messageMock, /^Standup has already started!/);
       });
 
       it('should not start if a standup is in progress', function() {

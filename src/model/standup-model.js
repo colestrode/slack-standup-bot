@@ -13,6 +13,7 @@ model.init = function(controller, bot) {
   teamsSave = q.nbind(controller.storage.teams.save, controller.storage.teams);
   filesUpload = q.nbind(bot.api.files.upload, bot.api.files);
 
+  loadStatuses();
   return teamsGet('summarychannel')
     .then(function(sc) {
       if (sc) {
@@ -33,6 +34,7 @@ model.getSummaryChannel = function() {
 
 model.addStatus = function(status) {
   statuses.push(status);
+  return teamsSave({id: 'statuses', statuses: statuses});
 };
 
 model.getStatuses = function() {
@@ -41,6 +43,7 @@ model.getStatuses = function() {
 
 model.clearStatuses = function() {
   statuses = [];
+  return teamsSave({id: 'statuses', statuses: []});
 };
 
 model.summarize = function() {
@@ -121,3 +124,16 @@ function compileSummaries() {
 function markdownify(message) {
   return message.replace(/\n/g, '\n\n');
 }
+
+function loadStatuses() {
+  return teamsGet('statuses')
+    .then(function(statusesRecord) {
+      // TBH this is purely to simplify the tests which are defaulting to return
+      // the summary channel from teamsGet
+      if (statusesRecord && statusesRecord.statuses) {
+        statuses = statusesRecord.statuses;
+      }
+      return statuses;
+    });
+}
+

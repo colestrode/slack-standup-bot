@@ -7,7 +7,14 @@ var usersModel = require('../model/users-model')
 
 module.exports.use = function(controller) {
   controller.hears('start', 'direct_mention', function(bot, message) {
+    /*jshint maxcomplexity:6 */
     var eachUser;
+
+    console.log(standupModel.getStatuses());
+    if (standupModel.getStatuses().length > 0) {
+      standupHappening = true;
+    }
+
     if (standupHappening) {
       return bot.reply(message, 'Standup has already started!');
     }

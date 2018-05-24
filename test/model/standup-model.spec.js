@@ -117,14 +117,25 @@ describe('Standup Model', function() {
   });
 
   describe('Status', function() {
+    beforeEach(function() {
+      return StandupModel.init(botController, botMock)
+        .then(function() {
+          botController.storage.teams.get.reset();
+          botController.storage.teams.save.reset();
+        });
+    });
+
     it('should return empty array when not statuses have been added', function() {
       expect(StandupModel.getStatuses()).to.deep.equal([]);
     });
 
-    it('should add and return status that has been added', function() {
+    it('should add a status to DB', function() {
       var status = {hi: 'there'};
-      StandupModel.addStatus(status);
-      expect(StandupModel.getStatuses()).to.deep.equal([status]);
+      return StandupModel.addStatus(status)
+        .then(function() {
+          expect(botController.storage.teams.save).to.have.been.called;
+          expect(botController.storage.teams.save).to.have.been.calledWithMatch({id: 'statuses', statuses: [status]});
+        });
     });
 
     it('should remove any added statuses', function() {
@@ -132,8 +143,23 @@ describe('Standup Model', function() {
       StandupModel.addStatus(status);
       expect(StandupModel.getStatuses()).to.deep.equal([status]);
 
-      StandupModel.clearStatuses();
-      expect(StandupModel.getStatuses()).to.deep.equal([]);
+      return StandupModel.clearStatuses()
+        .then(function() {
+          expect(StandupModel.getStatuses()).to.deep.equal([]);
+          expect(botController.storage.teams.save).to.have.been.calledWith({id: 'statuses', statuses: []});
+        });
+    });
+  });
+
+  describe('loadStatuses', function() {
+
+    it('should load statuses from the DB on init', function() {
+      botController.storage.teams.get.yields(null, {statuses: ['foo']});
+      return StandupModel.init(botController, botMock)
+        .then(function() {
+          expect(botController.storage.teams.get).to.have.been.calledWith('statuses');
+          expect(StandupModel.getStatuses()).to.deep.equal(['foo']);
+        });
     });
   });
 
