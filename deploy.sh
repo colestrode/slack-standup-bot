@@ -1,5 +1,5 @@
 #!/bin/bash
-APP=slack-standup-bot
+APP=msys-slack-standup-bot
 
 # pull the latest code
 cd /opt/msys/slack-standup-bot
