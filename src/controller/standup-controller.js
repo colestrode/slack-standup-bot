@@ -66,22 +66,7 @@ module.exports.use = function(controller) {
   });
 
   controller.hears('end', 'direct_mention', function(bot, message) {
-    var silentUsers = getSilentUsers();
-
-    if (!standupHappening) {
-      return bot.reply(message, 'Standup is already over! Start another one with `start`');
-    }
-
-    if (silentUsers.length > 0) {
-      bot.reply(message, 'The following users have not checked in, their input ' +
-                         'will be logged, but will not be in the report: ' + silentUsers);
-    }
-
-    standupHappening = false;
-
-    bot.reply(message, 'Standup is over!');
-    summarizeStandup(bot);
-    standupModel.clearStatuses();
+    endStandup(bot, message);
   });
 
   controller.hears('report', 'direct_mention', function(bot, message) {
@@ -161,6 +146,11 @@ module.exports.use = function(controller) {
     var errConfig = {channel: standupChannel, text: 'Error showing status for ' + eachUser.name};
     standupModel.addResponsiveUser(eachUser);
     return standupModel.summarizeUser(eachUser.name)
+        .then(function() {
+          if (getSilentUsers().length === 0) {
+            endStandup(bot);
+          }
+        })
         .fail(function(err) {
           console.log(err);
           bot.say({text: 'error showing your status!', channel: eachUser.id});
@@ -195,5 +185,26 @@ module.exports.use = function(controller) {
       }
     }
     return silentUsers;
+  }
+  function endStandup(bot, message) {
+    var silentUsers = getSilentUsers();
+
+    // if someone tried to end it with no actual SU going on
+    if (!standupHappening && message) {
+      return bot.reply(message, 'Standup is already over! Start another one with `start`');
+    }
+
+    if (silentUsers.length > 0) {
+      bot.say({ text: 'The following users have not checked in, their input ' +
+                      'will be logged, but will not be in the report: ' + silentUsers,
+                channel: standupModel.getSummaryChannel()});
+    }
+
+    standupHappening = false;
+
+    bot.say({ text: 'Standup is over!',
+              channel: standupModel.getSummaryChannel()});
+    summarizeStandup(bot);
+    standupModel.clearStatuses();
   }
 };

@@ -283,8 +283,8 @@ describe('Standup Controller', function() {
         hasNextCallback.reset();
         endCallback(botMock, messageMock);
         // verify that since no users responded, this information is printed out on completion
-        expect(botMock.reply).to.have.been.calledWithMatch(messageMock, new RegExp(messageMock.user));
-        expect(botMock.reply).to.have.been.calledWithMatch(messageMock, /Standup is over/);
+        expect(botMock.say.firstCall.args[0].text).to.match(new RegExp(messageMock.user));
+        expect(botMock.say.secondCall.args[0].text).to.match(/Standup is over/);
         expect(standupModelMock.summarize).to.have.been.called;
         expect(standupModelMock.clearStatuses).to.have.been.called;
       });
@@ -311,6 +311,7 @@ describe('Standup Controller', function() {
 
         expect(startCallback).to.exist;
         expect(endCallback).to.exist;
+        hasNextCallback.reset();
       });
       it('should prompt multiple users', function() {
         hasNextCallback.onFirstCall().returns(true);
@@ -353,6 +354,7 @@ describe('Standup Controller', function() {
           messageMock.channel = 'walterwhite';
           botMock.startPrivateConversation.reset();
           startCallback(botMock, messageMock);
+          hasNextCallback.reset();
 
           botMock.startPrivateConversation.firstCall.args[1](null, convoMock);
 
@@ -363,6 +365,7 @@ describe('Standup Controller', function() {
         it('should add status if private convo is completed', function() {
           convoMock.status = 'completed';
           standupModelMock.summarizeUser.reset();
+          standupModelMock.isResponsiveUser.returns(false);
 
           return onEnd(convoMock)
             .then(function() {
@@ -370,6 +373,25 @@ describe('Standup Controller', function() {
               expect(standupModelMock.summarizeUser).to.have.been.called;
 
               expect(botMock.say).not.to.have.been.called;
+            });
+        });
+
+        it('should end standup if everyone is done', function() {
+          convoMock.status = 'completed';
+          standupModelMock.summarizeUser.reset();
+          standupModelMock.isResponsiveUser.returns(true);
+
+          return onEnd(convoMock)
+            .then(function() {
+              // make sure we do our regular status update
+              expect(standupModelMock.addStatus).to.have.been.called;
+              expect(standupModelMock.summarizeUser).to.have.been.called;
+
+              // now the standup ending
+              // note that we only expect one call to 'say' since there aren't any silent users
+              expect(botMock.say.firstCall.args[0].text).to.match(/Standup is over/);
+              expect(standupModelMock.clearStatuses).to.have.been.called;
+              expect(standupModelMock.summarize).to.have.been.called;
             });
         });
 
