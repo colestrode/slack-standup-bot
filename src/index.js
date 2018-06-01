@@ -1,4 +1,5 @@
 var Botkit = require('botkit')
+  , config = require('config')
   , usersController = require('./controller/users-controller')
   , summaryController = require('./controller/summary-controller')
   , standupController = require('./controller/standup-controller')
@@ -8,12 +9,12 @@ var Botkit = require('botkit')
 // linter doesn't like that botkit isn't using camel case, sigh
 controller = Botkit.slackbot({
   debug: false,
-  json_file_store: process.env.JSON_FILE_STORE_PATH // jshint ignore:line
+  json_file_store: config.JSON_FILE_STORE_PATH // jshint ignore:line
 });
 
 // connect the bot to a stream of messages
 controller.spawn({
-  token: process.env.SLACK_API_TOKEN,
+  token: config.SLACK_API_TOKEN,
   retry: 500
 }).startRTM(function(err, bot) {
   require('./model/users-model').init(controller, bot);

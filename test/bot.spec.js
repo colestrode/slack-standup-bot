@@ -8,6 +8,7 @@ chai.use(require('sinon-chai'));
 
 describe('Bot', function() {
   var botkitMock
+    , config
     , usersControllerMock
     , summaryControllerMock
     , standupControllerMock
@@ -37,12 +38,14 @@ describe('Bot', function() {
     usersModelMock = {init: sinon.stub()};
     standupModelMock = {init: sinon.stub()};
 
-    process.env.REDIS_URL = 'REDIS_URL';
-    process.env.SLACK_API_TOKEN = 'SLACK_API_TOKEN';
-    process.env.JSON_FILE_STORE_PATH = 'test';
+    config = {
+      'SLACK_API_TOKEN': 'SLACK_API_TOKEN',
+      'JSON_FILE_STORE_PATH': 'test'
+    };
 
     Bot = proxyquire('../src/index', {
       'botkit': botkitMock,
+      'config': config,
       './controller/users-controller': usersControllerMock,
       './controller/summary-controller': summaryControllerMock,
       './controller/standup-controller': standupControllerMock,
@@ -53,13 +56,13 @@ describe('Bot', function() {
   });
 
   it('should create the controller', function() {
-    expect(botkitMock.slackbot).to.have.been.calledWithMatch({json_file_store: process.env.JSON_FILE_STORE_PATH}); // jshint ignore:line
+    expect(botkitMock.slackbot).to.have.been.calledWithMatch({json_file_store: config.JSON_FILE_STORE_PATH}); // jshint ignore:line
   });
 
   it('should startRTM', function() {
     var fakeBot = {};
     controllerMock.startRTM.yield(null, fakeBot);
-    expect(controllerMock.spawn).to.have.been.calledWith({token: process.env.SLACK_API_TOKEN, retry: 500});
+    expect(controllerMock.spawn).to.have.been.calledWith({token: config.SLACK_API_TOKEN, retry: 500});
     expect(controllerMock.startRTM).to.have.been.called;
 
     expect(usersModelMock.init).to.have.been.calledWith(controllerMock, fakeBot);
