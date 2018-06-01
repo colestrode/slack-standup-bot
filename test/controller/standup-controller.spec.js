@@ -65,6 +65,7 @@ describe('Standup Controller', function() {
       summarizeUser: sinon.stub().returns(q()),
       summarize: sinon.stub().returns(q())
     };
+    standupModelMock.getStatuses.returns([]);
 
     standupController = proxyquire('../../src/controller/standup-controller', {
       '../model/users-model': usersModelMock,
@@ -161,7 +162,7 @@ describe('Standup Controller', function() {
       });
 
       it('should not start if a standup is there are statuses', function() {
-        standupModelMock.getStatuses.returns([]);
+        standupModelMock.getStatuses.returns(['test']);
         callback(botMock, messageMock);
         expect(botMock.reply).to.have.been.calledWithMatch(messageMock, /^Standup has already started!/);
       });
