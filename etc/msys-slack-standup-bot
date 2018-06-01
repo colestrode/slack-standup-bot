@@ -1,4 +1,7 @@
-kconfig: 35 99 99
+#!/bin/sh
+#
+# chkconfig: 35 99 99
+
 # description: slack-standup-bot init.d script
 #
 
