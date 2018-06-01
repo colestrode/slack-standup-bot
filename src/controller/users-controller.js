@@ -1,4 +1,5 @@
 var usersModel = require('../model/users-model')
+  , q = require('q')
   , _ = require('lodash');
 
 module.exports.use = function(controller) {
@@ -12,6 +13,29 @@ module.exports.use = function(controller) {
         console.log(err);
         bot.reply(message, 'Oops! I wasn\'t able to add you right now, maybe try again in a minute');
       });
+  });
+
+  controller.hears('add', ['direct_message', 'direct_mention'], function(bot, message) {
+    var probableUserName
+    , userNameMatch;
+    userNameMatch = message.text.match(/@(\w*)/);
+    if (userNameMatch) {
+      probableUserName = userNameMatch[1];
+      return usersModel.add(probableUserName).then(function(user) {
+        if (user) {
+          bot.reply(message, 'added ' + user.name + ' to the team!');
+        } else {
+          bot.reply(message, probableUserName + ' does not seem to exist :confused:');
+        }
+      })
+      .fail(function(err) {
+        bot.reply(message, probableUserName + ' could not be added: ' + err);
+      });
+    } else {
+      bot.reply(message, 'I couldn\'t see a tagged user in "' + message.text + '"');
+      return q();
+    }
+
   });
 
   // leave

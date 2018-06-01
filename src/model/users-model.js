@@ -27,13 +27,15 @@ module.exports.init = function(controller, bot) {
 module.exports.add = function(userId) {
   return getUser(userId)
     .then(function(user) {
-      if (_.indexOf(userIds, userId) < 0) {
-        userIds.push(userId);
-        users.push(user);
+      if (user) {
+        if (_.indexOf(userIds, userId) < 0) {
+          userIds.push(userId);
+          users.push(user);
 
-        users = sort(users);
+          users = sort(users);
 
-        teamsSave({id: userIdsKey, userIds: userIds});
+          teamsSave({id: userIdsKey, userIds: userIds});
+        }
       }
       return user;
     });
@@ -97,5 +99,9 @@ function getUser(userId) {
   return usersInfo({user: userId})
     .then(function(res) {
       return res.user;
+    })
+    .fail(function(err) {
+      console.log(err);
+      return null;
     });
 }
