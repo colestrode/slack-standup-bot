@@ -2,6 +2,7 @@ var q = require('q')
   , _ = require('lodash')
   , moment = require('moment')
   , statuses = []
+  , responsiveUsers = []
   , summaryChannel
   , teamsGet
   , teamsSave
@@ -14,6 +15,7 @@ model.init = function(controller, bot) {
   filesUpload = q.nbind(bot.api.files.upload, bot.api.files);
 
   loadStatuses();
+  loadResponsiveUsers();
   return teamsGet('summarychannel')
     .then(function(sc) {
       if (sc) {
@@ -30,6 +32,19 @@ model.setSummaryChannel = function(channel) {
 
 model.getSummaryChannel = function() {
   return summaryChannel;
+};
+
+model.addResponsiveUser = function(user) {
+  responsiveUsers.push(user.name);
+  return teamsSave({id: 'responsiveUsers', users: responsiveUsers});
+};
+
+model.isResponsiveUser = function(user) {
+  return (responsiveUsers.indexOf(user.name) >= 0);
+};
+
+model.getResponsiveUsers = function() {
+  return responsiveUsers;
 };
 
 model.addStatus = function(status) {
@@ -137,3 +152,13 @@ function loadStatuses() {
     });
 }
 
+function loadResponsiveUsers() {
+  return teamsGet('responsiveUsers')
+    .then(function(responsiveUsersRecord) {
+      // see above comment in loadStatuses()
+      if (responsiveUsersRecord && responsiveUsersRecord.responsiveUsers) {
+        responsiveUsers = responsiveUsersRecord.responsiveUsers;
+      }
+      return responsiveUsers;
+    });
+}

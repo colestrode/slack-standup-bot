@@ -63,8 +63,12 @@ describe('Standup Controller', function() {
       getStatuses: sinon.stub(),
       clearStatuses: sinon.stub(),
       summarizeUser: sinon.stub().returns(q()),
-      summarize: sinon.stub().returns(q())
+      summarize: sinon.stub().returns(q()),
+      addResponsiveUser: sinon.stub().returns(q()),
+      getResponsiveUsers: sinon.stub().returns([user]),
+      isResponsiveUser: sinon.stub().returns(false)
     };
+
     standupModelMock.getStatuses.returns([]);
 
     standupController = proxyquire('../../src/controller/standup-controller', {
@@ -116,6 +120,8 @@ describe('Standup Controller', function() {
       });
 
       it('should pester silent users', function() {
+        // make it so there are more regular users
+        usersModelMock.list.returns([user, user]);
         startCallback(botMock, messageMock);
         hasNextCallback.reset();
         remindCallback(botMock, messageMock);
@@ -143,8 +149,6 @@ describe('Standup Controller', function() {
       });
 
       it('should not bother reminding people if everyone\'s responded', function() {
-        // rig this so that it never initializes silentUsers, mild hack, but should be fine
-        hasNextCallback.onFirstCall().returns(false);
         startCallback(botMock, messageMock);
         hasNextCallback.reset();
         remindCallback(botMock, messageMock);
@@ -178,6 +182,7 @@ describe('Standup Controller', function() {
 
       it('should summarize and print silent users', function() {
         startCallback(botMock, messageMock);
+        hasNextCallback.reset();
         reportCallback(botMock, messageMock);
         expect(standupModelMock.summarize).to.have.been.called;
         expect(botMock.reply).to.have.been.calledWithMatch(messageMock, new RegExp(messageMock.user));
@@ -275,7 +280,7 @@ describe('Standup Controller', function() {
       it('should end an ongoing standup with users who haven\'t responded', function() {
         startCallback(botMock, messageMock);
         botMock.reply.reset();
-
+        hasNextCallback.reset();
         endCallback(botMock, messageMock);
         // verify that since no users responded, this information is printed out on completion
         expect(botMock.reply).to.have.been.calledWithMatch(messageMock, new RegExp(messageMock.user));

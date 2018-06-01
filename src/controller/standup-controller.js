@@ -2,8 +2,7 @@ var usersModel = require('../model/users-model')
   , standupModel = require('../model/standup-model')
   , standupHappening = false
   , standupChannel
-  , userIterator
-  , silentUsers = [];
+  , userIterator;
 
 module.exports.use = function(controller) {
   controller.hears('start', 'direct_mention', function(bot, message) {
@@ -35,42 +34,47 @@ module.exports.use = function(controller) {
     userIterator = usersModel.iterator();
     while (userIterator.hasNext()) {
       eachUser = userIterator.next();
-      silentUsers.push(eachUser.name);
       gatherStatus(bot, eachUser);
     }
   });
 
   controller.hears('remind', ['direct_mention', 'direct_message'], function(bot, message) {
     var eachUser
-    , userIterator = usersModel.iterator();
+    , userIterator = usersModel.iterator(),
+    remindedUsers = [];
 
     if (!standupHappening) {
       bot.reply(message, 'there\'s no standup to remind people about!');
       return;
     }
 
-    if (!silentUsers.length) {
+    if (standupModel.getResponsiveUsers().length === usersModel.list().length) {
       bot.reply(message, 'everyone seems to have responded!');
       return;
     }
 
     while (userIterator.hasNext()) {
       eachUser = userIterator.next();
-      if (silentUsers.indexOf(eachUser.name) >= 0) {
+      // doing this rather than parsing silentUsers because it needs the
+      // user object and that function is designed to return names
+      if (!standupModel.isResponsiveUser(eachUser)) {
         remindStatus(bot, eachUser);
+        remindedUsers.push(eachUser.name);
       }
     }
-    bot.reply(message, 'I just reminded these users: ' + silentUsers);
+    bot.reply(message, 'I just reminded these users: ' + remindedUsers);
   });
 
   controller.hears('end', 'direct_mention', function(bot, message) {
+    var silentUsers = getSilentUsers();
+
     if (!standupHappening) {
       return bot.reply(message, 'Standup is already over! Start another one with `start`');
     }
 
     if (silentUsers.length > 0) {
       bot.reply(message, 'The following users have not checked in, their input ' +
-                         'will be logged, but will not be in the report: ' + silentUsers.toString());
+                         'will be logged, but will not be in the report: ' + silentUsers);
     }
 
     standupHappening = false;
@@ -78,10 +82,11 @@ module.exports.use = function(controller) {
     bot.reply(message, 'Standup is over!');
     summarizeStandup(bot);
     standupModel.clearStatuses();
-    silentUsers = [];
   });
 
   controller.hears('report', 'direct_mention', function(bot, message) {
+    var silentUsers = getSilentUsers();
+
     if (!standupHappening) {
       bot.reply(message, 'There is no standup happening right now!');
       return;
@@ -89,7 +94,7 @@ module.exports.use = function(controller) {
 
     standupModel.summarize(bot);
     if (silentUsers.length > 0) {
-      bot.reply(message, 'The following users have not replied: ' + silentUsers.toString());
+      bot.reply(message, 'The following users have not replied: ' + silentUsers);
     }
   });
 
@@ -153,11 +158,8 @@ module.exports.use = function(controller) {
   }
 
   function afterStatus(bot, eachUser) {
-    var errConfig = {channel: standupChannel, text: 'Error showing status for ' + eachUser.name}
-    , idx = silentUsers.indexOf(eachUser.name);
-    if (idx > -1) {
-      silentUsers.splice(idx, 1);
-    }
+    var errConfig = {channel: standupChannel, text: 'Error showing status for ' + eachUser.name};
+    standupModel.addResponsiveUser(eachUser);
     return standupModel.summarizeUser(eachUser.name)
         .fail(function(err) {
           console.log(err);
@@ -179,5 +181,19 @@ module.exports.use = function(controller) {
         sayConfig.text += ' I had a problem saving the summary though, sorry about that :grimacing:';
         return bot.say(sayConfig);
       });
+  }
+
+  function getSilentUsers() {
+    var silentUsers = []
+      , eachUser
+      , userIterator;
+    userIterator = usersModel.iterator();
+    while (userIterator.hasNext()) {
+      eachUser = userIterator.next();
+      if (!standupModel.isResponsiveUser(eachUser)) {
+        silentUsers.push(eachUser.name);
+      }
+    }
+    return silentUsers;
   }
 };

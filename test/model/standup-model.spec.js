@@ -163,6 +163,24 @@ describe('Standup Model', function() {
     });
   });
 
+  describe('responsiveUsers', function() {
+    it('should load responsive users on init', function() {
+      botController.storage.teams.get.yields(null, {responsiveUsers: ['foo']});
+      return StandupModel.init(botController, botMock)
+        .then(function() {
+          expect(botController.storage.teams.get).to.have.been.calledWith('responsiveUsers');
+          expect(StandupModel.getResponsiveUsers()).to.deep.equal(['foo']);
+        });
+    });
+
+    it('should test existence', function() {
+      return StandupModel.init(botController, botMock)
+        .then(function() {
+          StandupModel.addResponsiveUser({name: 'test'});
+          expect(StandupModel.isResponsiveUser({name: 'test'})).to.equal(true);
+        });
+    });
+  });
   describe('summarize', function() {
     var title;
 
