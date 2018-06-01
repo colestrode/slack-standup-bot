@@ -75,7 +75,7 @@ describe('Standup Controller', function() {
 
   it('should set up listeners', function() {
     standupController.use(botController);
-    expect(botController.hears.callCount).to.equal(3);
+    expect(botController.hears.callCount).to.equal(4);
 
     _.forEach(botController.hears.args, function(args) {
       expect(args).to.have.length(3);
@@ -97,6 +97,62 @@ describe('Standup Controller', function() {
       };
     });
 
+    describe('remind silent users', function() {
+      var remindCallback
+      , startCallback
+      , convoCallback;
+
+      beforeEach(function() {
+        remindCallback = _.find(hearsMap, function(val, key) {
+          return /^remind$/.test(key);
+        });
+
+        startCallback = _.find(hearsMap, function(val, key) {
+          return /^start$/.test(key);
+        });
+
+        expect(remindCallback).to.exist;
+        expect(startCallback).to.exist;
+      });
+
+      it('should pester silent users', function() {
+        startCallback(botMock, messageMock);
+        hasNextCallback.reset();
+        remindCallback(botMock, messageMock);
+        expect(botMock.startPrivateConversation.callCount).to.equal(2);
+        convoCallback = botMock.startPrivateConversation.secondCall.args[1];
+        convoCallback(null, convoMock);
+        expect(convoMock.say).to.have.been.calledWithMatch(/Please check in.*/);
+      });
+
+      it('should not pester users who already responded', function() {
+        startCallback(botMock, messageMock);
+        hasNextCallback.reset();
+        // sneak in a fake user so they don't show up in silentUsers, making them seem like
+        // they've responded
+        userIterator.next.returns({name: 'test', id: 'id'});
+        botMock.startPrivateConversation.reset();
+        remindCallback(botMock, messageMock);
+        expect(botMock.startPrivateConversation).to.not.have.been.called;
+      });
+
+      it('should not remind anyone if there\'s no standup', function() {
+        remindCallback(botMock, messageMock);
+        expect(botMock.reply).to.have.been.calledWithMatch(messageMock, /.*no standup.*/);
+        expect(botMock.startPrivateConversation.callCount).to.equal(0);
+      });
+
+      it('should not bother reminding people if everyone\'s responded', function() {
+        // rig this so that it never initializes silentUsers, mild hack, but should be fine
+        hasNextCallback.onFirstCall().returns(false);
+        startCallback(botMock, messageMock);
+        hasNextCallback.reset();
+        remindCallback(botMock, messageMock);
+        expect(botMock.reply).to.have.been.calledWithMatch(messageMock, /.*everyone seems to have responded.*/);
+        expect(hasNextCallback).to.not.have.been.called;
+      });
+
+    });
     describe('generate report', function() {
       var reportCallback
       , startCallback;

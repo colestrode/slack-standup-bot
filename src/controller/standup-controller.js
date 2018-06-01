@@ -10,7 +10,6 @@ module.exports.use = function(controller) {
     /*jshint maxcomplexity:6 */
     var eachUser;
 
-    console.log(standupModel.getStatuses());
     if (standupModel.getStatuses().length > 0) {
       standupHappening = true;
     }
@@ -41,13 +40,36 @@ module.exports.use = function(controller) {
     }
   });
 
+  controller.hears('remind', ['direct_mention', 'direct_message'], function(bot, message) {
+    var eachUser
+    , userIterator = usersModel.iterator();
+
+    if (!standupHappening) {
+      bot.reply(message, 'there\'s no standup to remind people about!');
+      return;
+    }
+
+    if (!silentUsers.length) {
+      bot.reply(message, 'everyone seems to have responded!');
+      return;
+    }
+
+    while (userIterator.hasNext()) {
+      eachUser = userIterator.next();
+      if (silentUsers.indexOf(eachUser.name) >= 0) {
+        remindStatus(bot, eachUser);
+      }
+    }
+    bot.reply(message, 'I just reminded these users: ' + silentUsers);
+  });
+
   controller.hears('end', 'direct_mention', function(bot, message) {
     if (!standupHappening) {
       return bot.reply(message, 'Standup is already over! Start another one with `start`');
     }
 
     if (silentUsers.length > 0) {
-      bot.reply(message, 'The following users have not checked in, their input' +
+      bot.reply(message, 'The following users have not checked in, their input ' +
                          'will be logged, but will not be in the report: ' + silentUsers.toString());
     }
 
@@ -74,6 +96,15 @@ module.exports.use = function(controller) {
   /*******************
    * Running Standup *
    *******************/
+  function remindStatus(bot, eachUser) {
+    bot.startPrivateConversation({
+                                user: eachUser.id,
+                                channel: eachUser.id
+                              },
+                                function(err, convo) {
+      convo.say('Please check in by answering the previous question!');
+    });
+  }
 
   function gatherStatus(bot, eachUser) {
     bot.startPrivateConversation({
@@ -81,7 +112,6 @@ module.exports.use = function(controller) {
                                 channel: eachUser.id
                               },
                                function(err, convo) {
-
       convo.say('Heya! Time for standup!');
       convo.ask('What have you done since the last standup?', convoCallback, {
         channel: eachUser.id,
