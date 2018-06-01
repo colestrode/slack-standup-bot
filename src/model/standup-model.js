@@ -47,6 +47,11 @@ model.getResponsiveUsers = function() {
   return responsiveUsers;
 };
 
+model.clearResponsiveUsers = function() {
+  responsiveUsers = [];
+  return teamsSave({id: 'responsiveUsers', responsiveUsers: responsiveUsers});
+};
+
 model.addStatus = function(status) {
   statuses.push(status);
   return teamsSave({id: 'statuses', statuses: statuses});

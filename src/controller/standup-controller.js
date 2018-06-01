@@ -206,5 +206,6 @@ module.exports.use = function(controller) {
               channel: standupModel.getSummaryChannel()});
     summarizeStandup(bot);
     standupModel.clearStatuses();
+    standupModel.clearResponsiveUsers();
   }
 };

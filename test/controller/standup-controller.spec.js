@@ -66,7 +66,8 @@ describe('Standup Controller', function() {
       summarize: sinon.stub().returns(q()),
       addResponsiveUser: sinon.stub().returns(q()),
       getResponsiveUsers: sinon.stub().returns([user]),
-      isResponsiveUser: sinon.stub().returns(false)
+      isResponsiveUser: sinon.stub().returns(false),
+      clearResponsiveUsers: sinon.stub()
     };
 
     standupModelMock.getStatuses.returns([]);

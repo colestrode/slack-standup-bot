@@ -180,6 +180,20 @@ describe('Standup Model', function() {
           expect(StandupModel.isResponsiveUser({name: 'test'})).to.equal(true);
         });
     });
+
+    it('should support emptying out the responsiveUsers array', function() {
+      return StandupModel.init(botController, botMock)
+        .then(function() {
+          StandupModel.addResponsiveUser({name: 'test'});
+          expect(StandupModel.isResponsiveUser({name: 'test'})).to.equal(true);
+          expect(StandupModel.getResponsiveUsers().length).to.equal(1);
+
+          StandupModel.clearResponsiveUsers();
+          expect(StandupModel.isResponsiveUser({name: 'test'})).to.equal(false);
+          expect(StandupModel.getResponsiveUsers.length).to.equal(0);
+        });
+
+    });
   });
   describe('summarize', function() {
     var title;
