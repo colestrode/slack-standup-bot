@@ -8,6 +8,7 @@ chai.use(require('sinon-chai'));
 
 describe('Bot', function() {
   var botkitMock
+    , q = require('q')
     , config
     , usersControllerMock
     , summaryControllerMock
@@ -22,7 +23,7 @@ describe('Bot', function() {
     controllerMock = {
       on: sinon.stub(),
       spawn: sinon.stub(),
-      startRTM: sinon.stub()
+      startRTM: sinon.stub().yields(null)
     };
     controllerMock.spawn.returns(controllerMock);
 
@@ -35,8 +36,8 @@ describe('Bot', function() {
     standupControllerMock = {use: sinon.stub()};
     helpControllerMock = {use: sinon.stub()};
 
-    usersModelMock = {init: sinon.stub()};
-    standupModelMock = {init: sinon.stub()};
+    usersModelMock = {init: sinon.stub().returns(q())};
+    standupModelMock = {init: sinon.stub().returns(q())};
 
     config = {
       'SLACK_API_TOKEN': 'SLACK_API_TOKEN',
@@ -70,9 +71,22 @@ describe('Bot', function() {
   });
 
   it('should initialize controllers', function() {
-    expect(usersControllerMock.use).to.have.been.calledWith(controllerMock);
-    expect(summaryControllerMock.use).to.have.been.calledWith(controllerMock);
-    expect(standupControllerMock.use).to.have.been.calledWith(controllerMock);
+    var fakeBot = {}
+      , usersPromise = q()
+      , standupPromise = q()
+    ;
+    usersPromise.finally(function() {
+      expect(usersControllerMock.use).to.have.been.calledWith(controllerMock);
+    });
+
+    standupPromise.finally(function() {
+      expect(summaryControllerMock.use).to.have.been.calledWith(controllerMock);
+      expect(standupControllerMock.use).to.have.been.calledWith(controllerMock);
+    });
+
+    usersModelMock.init = sinon.stub().returns(usersPromise);
+    standupModelMock.init = sinon.stub().returns(standupPromise);
+    controllerMock.startRTM.yield(null, fakeBot);
     expect(helpControllerMock.use).to.have.been.calledWith(controllerMock);
   });
 

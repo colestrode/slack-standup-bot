@@ -65,7 +65,7 @@ describe('Standup Model', function() {
           throw new Error('should have failed');
         })
         .fail(function(e) {
-          expect(botController.storage.teams.get).to.have.been.calledWith('summarychannel');
+          expect(botController.storage.teams.get).to.have.been.calledWith('statuses');
           expect(e).to.equal(err);
         });
     });

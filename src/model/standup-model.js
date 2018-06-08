@@ -14,15 +14,19 @@ model.init = function(controller, bot) {
   teamsSave = q.nbind(controller.storage.teams.save, controller.storage.teams);
   filesUpload = q.nbind(bot.api.files.upload, bot.api.files);
 
-  loadStatuses();
-  loadResponsiveUsers();
-  return teamsGet('summarychannel')
+  return loadStatuses()
+    .then(function() {
+      loadResponsiveUsers();
+    })
+    .then(function() {
+      return teamsGet('summarychannel');
+    })
     .then(function(sc) {
-      if (sc) {
-        summaryChannel = sc.channel;
-      }
-      return summaryChannel;
-    });
+        if (sc) {
+          summaryChannel = sc.channel;
+        }
+        return summaryChannel;
+      });
 };
 
 model.setSummaryChannel = function(channel) {

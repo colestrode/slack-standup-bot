@@ -17,16 +17,21 @@ controller.spawn({
   token: config.SLACK_API_TOKEN,
   retry: 500
 }).startRTM(function(err, bot) {
-  require('./model/users-model').init(controller, bot);
-  require('./model/standup-model').init(controller, bot);
+  require('./model/users-model').init(controller, bot)
+    .then(function() {
+      usersController.use(controller);
+    });
+
+  require('./model/standup-model').init(controller, bot)
+    .then(function() {
+      summaryController.use(controller);
+      standupController.use(controller);
+    });
+
+  helpController.use(controller);
 });
 
 controller.on('rtm_close', function() {
   console.log('Oh coconuts! The connection died');
   process.exit(1);
 });
-
-usersController.use(controller);
-summaryController.use(controller);
-standupController.use(controller);
-helpController.use(controller);
