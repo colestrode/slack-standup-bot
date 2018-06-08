@@ -20,7 +20,7 @@ SERVER_DESC="Slack Standup Bot Process"
 LOG_FILE="/var/log/msys-nodejs/slack-standup-bot.js.log"
 PID_FILE="/var/run/msys-app/slack-standup-bot.pid"
 
-FOREVER_START_ARGS="-al $LOG_FILE --pidFile $PID_FILE --minUptime 1000 --spinSleepTime 1000 --uid $USER"
+FOREVER_START_ARGS="-al $LOG_FILE --pidFile $PID_FILE --minUptime 1000 --spinSleepTime 1000 --uid $USER --workingDir $ROOT_DIR"
 
 
 RETVAL=0
