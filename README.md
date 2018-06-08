@@ -18,16 +18,17 @@ Type `@bot help` to get a list of these commands.
 
 _Running a stand up:_
 
-`@bot start`: Start a stand up.
+`@bot start`: Start a stand up. Must be run in a public channel.
 
-`@bot end`: End a stand up that's in progress. Stand ups will end on their own once everyone has reported, so this is only if you need to end early.
+`@bot end`: End a stand up that's in progress. Stand ups will end on their own once everyone has reported, so this is only if you need to end early. Must be run in a public channel.
+
+`@bot remind`: Remind non-responsive users to check in
 
 `@bot report in #channel`: Set a channel for post stand up reports. By default I'll use the channel the stand up started in.
 I have a pretty good memory, so you only need to tell me once :)
 
 `@bot where do you report?`: I'll tell you the which channel I'll post summary reports to..
 
-`skip`: Use this during a stand up to skip a user.
 
 _Adding and removing team members:_
 
@@ -39,17 +40,20 @@ I'll keep track of your team for you across standups!
 
 `@bot leave`: Removes you from the team.
 
+`@bot add @user`: Adds another user to the team
+
 `@bot remove @user`: Removes another user from the team.
 
 ## Set Up
 
 Clone this repo and deploy it to your favorite server. I'm all set up for Heroku in case that's your thing.
-Since I need to remember stuff, I'll need access to a Redis server too.
 
 Go to this page set me up in Slack: https://my.slack.com/services/new/bot
 
-Then you'll need to set two environment variables on your server:
+Then you'll need to set your slack API key in config/production.json:
 
-`SLACK_API_TOKEN`: Your Slack API token that you got from the Slack bot page.
-
-`JSON_FILE_STORE_PATH`: A local path for me to use to store what I need to store
+~~~~
+{
+  "SLACK_API_TOKEN": "<TOKEN>"
+}
+~~~~
