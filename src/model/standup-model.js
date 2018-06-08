@@ -36,7 +36,7 @@ model.getSummaryChannel = function() {
 
 model.addResponsiveUser = function(user) {
   responsiveUsers.push(user.name);
-  return teamsSave({id: 'responsiveUsers', users: responsiveUsers});
+  return teamsSave({id: 'responsiveUsers', responsiveUsers: responsiveUsers});
 };
 
 model.isResponsiveUser = function(user) {

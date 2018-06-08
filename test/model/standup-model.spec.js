@@ -176,8 +176,12 @@ describe('Standup Model', function() {
     it('should test existence', function() {
       return StandupModel.init(botController, botMock)
         .then(function() {
-          StandupModel.addResponsiveUser({name: 'test'});
-          expect(StandupModel.isResponsiveUser({name: 'test'})).to.equal(true);
+          StandupModel.addResponsiveUser({name: 'test'})
+            .then(function() {
+              expect(botController.storage.teams.save).to.have.been.calledWith({id: 'responsiveUsers', responsiveUsers: ['test']});
+              expect(StandupModel.isResponsiveUser({name: 'test'})).to.equal(true);
+              expect(StandupModel.getResponsiveUsers()).to.deep.equal(['test']);
+            });
         });
     });
 
