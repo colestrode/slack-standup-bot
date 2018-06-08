@@ -5,13 +5,13 @@ var usersModel = require('../model/users-model')
   , userIterator;
 
 module.exports.use = function(controller) {
+  if (standupModel.getStatuses().length > 0) {
+    standupHappening = true;
+  }
+
   controller.hears('start', 'direct_mention', function(bot, message) {
     /*jshint maxcomplexity:6 */
     var eachUser;
-
-    if (standupModel.getStatuses().length > 0) {
-      standupHappening = true;
-    }
 
     if (standupHappening) {
       return bot.reply(message, 'Standup has already started!');
@@ -27,6 +27,8 @@ module.exports.use = function(controller) {
       return bot.reply(message, 'Looks like no one is in the team! Get a few people to join and then we\'ll have some fun!');
     }
 
+    // NOTE there's a hole in the logic here where a standup will not be marked
+    // as in progress if the bot gets nuked before the first status gets back.
     standupHappening = true;
     bot.reply(message, 'Alright! Let\'s get this party started!');
 

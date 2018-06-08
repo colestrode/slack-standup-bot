@@ -88,6 +88,11 @@ describe('Standup Controller', function() {
     });
   });
 
+  it('should check statuses while setting up', function() {
+    standupController.use(botController);
+    expect(standupModelMock.getStatuses).to.have.been.called;
+  });
+
   describe('hears', function() {
     var hearsMap
       , messageMock;
@@ -223,8 +228,11 @@ describe('Standup Controller', function() {
         expect(standupModelMock.setSummaryChannel).to.have.been.calledWith(messageMock.channel);
       });
 
-      it('should not start if a standup is there are statuses', function() {
+      it('should not start if a standup is there are pre-existing statuses', function() {
+        // trigger the code to toggle whether a standup is happening based on
+        // existing statuses
         standupModelMock.getStatuses.returns(['test']);
+        standupController.use(botController);
         callback(botMock, messageMock);
         expect(botMock.reply).to.have.been.calledWithMatch(messageMock, /^Standup has already started!/);
       });
