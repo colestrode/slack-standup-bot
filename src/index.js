@@ -17,6 +17,7 @@ controller.spawn({
   token: config.SLACK_API_TOKEN,
   retry: 500
 }).startRTM(function(err, bot) {
+  // don't load the controllers until the models are done loading so they can init properly
   require('./model/users-model').init(controller, bot)
     .then(function() {
       usersController.use(controller);
@@ -31,6 +32,9 @@ controller.spawn({
   helpController.use(controller);
 });
 
+// Something keeps magically closing the connections between the bot and slack,
+// this causes forever to kick the process when that happens.
+// It can also potentially cause logspam on shutdown, but it's worth it
 controller.on('rtm_close', function() {
   console.log('Oh coconuts! The connection died');
   process.exit(1);

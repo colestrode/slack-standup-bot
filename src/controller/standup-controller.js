@@ -5,6 +5,10 @@ var usersModel = require('../model/users-model')
   , userIterator;
 
 module.exports.use = function(controller) {
+
+  // check to see if there are logged statuses, indicating an SU in progress
+  // this is important because slack keeps arbitrarily kicking connections,
+  // which can result in stuff getting lost if we're not careful
   if (standupModel.getStatuses().length > 0) {
     standupHappening = true;
   }
@@ -188,6 +192,7 @@ module.exports.use = function(controller) {
     }
     return silentUsers;
   }
+
   function endStandup(bot, message) {
     var silentUsers = getSilentUsers();
 
