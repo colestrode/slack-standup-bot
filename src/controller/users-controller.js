@@ -1,9 +1,10 @@
 var usersModel = require('../model/users-model')
+  , q = require('q')
   , _ = require('lodash');
 
 module.exports.use = function(controller) {
   // join
-  controller.hears('join', 'direct_mention', function(bot, message) {
+  controller.hears('join', ['direct_message', 'direct_mention'], function(bot, message) {
     return usersModel.add(message.user)
       .then(function(user) {
         bot.reply(message, 'You\'re on the roster ' + user.name + ' :thumbsup:');
@@ -14,8 +15,31 @@ module.exports.use = function(controller) {
       });
   });
 
+  controller.hears('add', ['direct_message', 'direct_mention'], function(bot, message) {
+    var probableUserName
+    , userNameMatch;
+    userNameMatch = message.text.match(/@(\w*)/);
+    if (userNameMatch) {
+      probableUserName = userNameMatch[1];
+      return usersModel.add(probableUserName).then(function(user) {
+        if (user) {
+          bot.reply(message, 'added ' + user.name + ' to the team!');
+        } else {
+          bot.reply(message, probableUserName + ' does not seem to exist :confused:');
+        }
+      })
+      .fail(function(err) {
+        bot.reply(message, probableUserName + ' could not be added: ' + err);
+      });
+    } else {
+      bot.reply(message, 'I couldn\'t see a tagged user in "' + message.text + '"');
+      return q();
+    }
+
+  });
+
   // leave
-  controller.hears(['leave', 'quit'], 'direct_mention', function(bot, message) {
+  controller.hears(['leave', 'quit'], ['direct_message', 'direct_mention'], function(bot, message) {
     return usersModel.remove(message.user)
       .then(function(user) {
         if (user) {
@@ -31,7 +55,7 @@ module.exports.use = function(controller) {
   });
 
   // kick/remove
-  controller.hears(['kick (.*)', 'remove (.*)'], 'direct_mention', function(bot, message) {
+  controller.hears(['kick (.*)', 'remove (.*)'], ['direct_message', 'direct_mention'], function(bot, message) {
     var userId = message.match[1]
       , promise;
 
@@ -59,7 +83,7 @@ module.exports.use = function(controller) {
   });
 
   // list participants
-  controller.hears(['list', 'participants', 'members', 'team'], 'direct_mention', function(bot, message) {
+  controller.hears(['list', 'participants', 'members', 'team'], ['direct_message', 'direct_mention'], function(bot, message) {
     var users = usersModel.list();
 
     if (!users.length) {

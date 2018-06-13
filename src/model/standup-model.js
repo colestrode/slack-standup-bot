@@ -2,6 +2,7 @@ var q = require('q')
   , _ = require('lodash')
   , moment = require('moment')
   , statuses = []
+  , responsiveUsers = []
   , summaryChannel
   , teamsGet
   , teamsSave
@@ -13,13 +14,19 @@ model.init = function(controller, bot) {
   teamsSave = q.nbind(controller.storage.teams.save, controller.storage.teams);
   filesUpload = q.nbind(bot.api.files.upload, bot.api.files);
 
-  return teamsGet('summarychannel')
+  return loadStatuses()
+    .then(function() {
+      loadResponsiveUsers();
+    })
+    .then(function() {
+      return teamsGet('summarychannel');
+    })
     .then(function(sc) {
-      if (sc) {
-        summaryChannel = sc.channel;
-      }
-      return summaryChannel;
-    });
+        if (sc) {
+          summaryChannel = sc.channel;
+        }
+        return summaryChannel;
+      });
 };
 
 model.setSummaryChannel = function(channel) {
@@ -31,8 +38,27 @@ model.getSummaryChannel = function() {
   return summaryChannel;
 };
 
+model.addResponsiveUser = function(user) {
+  responsiveUsers.push(user.name);
+  return teamsSave({id: 'responsiveUsers', responsiveUsers: responsiveUsers});
+};
+
+model.isResponsiveUser = function(user) {
+  return (responsiveUsers.indexOf(user.name) >= 0);
+};
+
+model.getResponsiveUsers = function() {
+  return responsiveUsers;
+};
+
+model.clearResponsiveUsers = function() {
+  responsiveUsers = [];
+  return teamsSave({id: 'responsiveUsers', responsiveUsers: responsiveUsers});
+};
+
 model.addStatus = function(status) {
   statuses.push(status);
+  return teamsSave({id: 'statuses', statuses: statuses});
 };
 
 model.getStatuses = function() {
@@ -41,6 +67,7 @@ model.getStatuses = function() {
 
 model.clearStatuses = function() {
   statuses = [];
+  return teamsSave({id: 'statuses', statuses: []});
 };
 
 model.summarize = function() {
@@ -64,8 +91,31 @@ model.summarize = function() {
       console.log(err);
       throw err;
     });
-  })).finally(function() {
-    model.clearStatuses();
+  }));
+};
+
+model.summarizeUser = function(username) {
+  var summary = ''
+  , postTitle = 'Summary for ' + username + '\n\n';
+  _.each(statuses, function(status) {
+    if (status.user.name === username) {
+      summary = '##Status for ' + status.user.name + '##\n\n' +
+        '_What did you do since the last standup?_\n\n' + markdownify(status.yesterday) + '\n\n' +
+        '_What are you working on now?_\n\n' + markdownify(status.today) + '\n\n' +
+        '_Anything in your way?_\n\n' + markdownify(status.obstacles) + '\n\n' +
+        '----\n\n';
+    }
+  });
+  // TODO test that summary got populated
+  return filesUpload({
+    filetype: 'post',
+    filename: postTitle,
+    title: postTitle,
+    content: summary,
+    channels: summaryChannel
+  }).fail(function(err) {
+    console.log(err);
+    throw err;
   });
 };
 
@@ -97,4 +147,27 @@ function compileSummaries() {
 
 function markdownify(message) {
   return message.replace(/\n/g, '\n\n');
+}
+
+function loadStatuses() {
+  return teamsGet('statuses')
+    .then(function(statusesRecord) {
+      // TBH this is purely to simplify the tests which are defaulting to return
+      // the summary channel from teamsGet
+      if (statusesRecord && statusesRecord.statuses) {
+        statuses = statusesRecord.statuses;
+      }
+      return statuses;
+    });
+}
+
+function loadResponsiveUsers() {
+  return teamsGet('responsiveUsers')
+    .then(function(responsiveUsersRecord) {
+      // see above comment in loadStatuses()
+      if (responsiveUsersRecord && responsiveUsersRecord.responsiveUsers) {
+        responsiveUsers = responsiveUsersRecord.responsiveUsers;
+      }
+      return responsiveUsers;
+    });
 }

@@ -1,14 +1,21 @@
 var usersModel = require('../model/users-model')
   , standupModel = require('../model/standup-model')
-  , q = require('q')
-  , readyForNextStatus = false
   , standupHappening = false
   , standupChannel
-  , currentUser
   , userIterator;
 
 module.exports.use = function(controller) {
+
+  // check to see if there are logged statuses, indicating an SU in progress
+  // this is important because slack keeps arbitrarily kicking connections,
+  // which can result in stuff getting lost if we're not careful
+  if (standupModel.getStatuses().length > 0) {
+    standupHappening = true;
+  }
+
   controller.hears('start', 'direct_mention', function(bot, message) {
+    /*jshint maxcomplexity:6 */
+    var eachUser;
 
     if (standupHappening) {
       return bot.reply(message, 'Standup has already started!');
@@ -24,92 +31,103 @@ module.exports.use = function(controller) {
       return bot.reply(message, 'Looks like no one is in the team! Get a few people to join and then we\'ll have some fun!');
     }
 
+    // NOTE there's a hole in the logic here where a standup will not be marked
+    // as in progress if the bot gets nuked before the first status gets back.
     standupHappening = true;
     bot.reply(message, 'Alright! Let\'s get this party started!');
 
-    // notify first user and start a conversation
+    // notify all users over DM
     userIterator = usersModel.iterator();
-    currentUser = userIterator.next();
-    promptUser(bot);
+    while (userIterator.hasNext()) {
+      eachUser = userIterator.next();
+      gatherStatus(bot, eachUser);
+    }
+  });
+
+  controller.hears('remind', ['direct_mention', 'direct_message'], function(bot, message) {
+    var eachUser
+    , userIterator = usersModel.iterator(),
+    remindedUsers = [];
+
+    if (!standupHappening) {
+      bot.reply(message, 'there\'s no standup to remind people about!');
+      return;
+    }
+
+    if (standupModel.getResponsiveUsers().length === usersModel.list().length) {
+      bot.reply(message, 'everyone seems to have responded!');
+      return;
+    }
+
+    while (userIterator.hasNext()) {
+      eachUser = userIterator.next();
+      // doing this rather than parsing silentUsers because it needs the
+      // user object and that function is designed to return names
+      if (!standupModel.isResponsiveUser(eachUser)) {
+        remindStatus(bot, eachUser);
+        remindedUsers.push(eachUser.name);
+      }
+    }
+    bot.reply(message, 'I just reminded these users: ' + remindedUsers);
   });
 
   controller.hears('end', 'direct_mention', function(bot, message) {
-    if (!standupHappening) {
-      return bot.reply(message, 'Standup is already over! Start another one with `start`');
-    }
-
-    readyForNextStatus = false;
-    standupHappening = false;
-
-    bot.reply(message, 'Standup is over!');
-
-    bot.startConversation(message, function(err, convo) {
-      convo.ask('<@' + message.user + '> do you want a summary of this standup?', [{
-          pattern: bot.utterances.yes,
-          callback: function(response, convo) {
-            return summarizeStandup(bot)
-              .finally(function() {
-                convo.next();
-              });
-          }
-        }, {
-          pattern: bot.utterances.no,
-          callback: function(response, convo) {
-            bot.say({channel: message.channel, text: 'Ok :hear_no_evil: Come again soon!'});
-            standupModel.clearStatuses();
-            convo.next();
-          }
-        }]);
-    });
+    endStandup(bot, message);
   });
 
+  controller.hears('report', 'direct_mention', function(bot, message) {
+    var silentUsers = getSilentUsers();
+
+    if (!standupHappening) {
+      bot.reply(message, 'There is no standup happening right now!');
+      return;
+    }
+
+    standupModel.summarize(bot);
+    if (silentUsers.length > 0) {
+      bot.reply(message, 'The following users have not replied: ' + silentUsers);
+    }
+  });
 
   /*******************
    * Running Standup *
    *******************/
-
-  controller.hears(['yes', 'yea', 'yup', 'yep', 'ya', 'sure', 'ok', 'yeah', 'yah', 'ready', 'sup'], 'direct_mention,ambient', function(bot, message) {
-    if (readyForNextStatus && message.user === currentUser.id) {
-      readyForNextStatus = false;
-      gatherStatus(bot, message);
-    }
-  });
-
-  controller.hears(['skip', 'no', 'nope', 'nah'], 'direct_mention,ambient', function(bot, message) {
-    if (readyForNextStatus) {
-      bot.reply(message, 'Skipping ' + currentUser.name);
-      return afterStatus(bot);
-    }
-    return q(); // for testing
-  });
-
-  function promptUser(bot) {
-    readyForNextStatus = true;
-    bot.say({
-      text: '<@' + currentUser.id + '> are you ready?',
-      channel: standupChannel
+  function remindStatus(bot, eachUser) {
+    bot.startPrivateConversation({
+                                user: eachUser.id,
+                                channel: eachUser.id
+                              },
+                                function(err, convo) {
+      convo.say('Please check in by answering the previous question!');
     });
   }
 
-  function gatherStatus(bot, message) {
-    bot.startConversation(message, function(err, convo) {
-
+  function gatherStatus(bot, eachUser) {
+    bot.startPrivateConversation({
+                                user: eachUser.id,
+                                channel: eachUser.id
+                              },
+                               function(err, convo) {
+      convo.say('Heya! Time for standup!');
       convo.ask('What have you done since the last standup?', convoCallback, {
+        channel: eachUser.id,
         key: 'yesterday',
         multiple: true
       });
 
       convo.ask('What are you working on now?', convoCallback, {
+        channel: eachUser.id,
         key: 'today',
         multiple: true
       });
 
       convo.ask('Anything in your way?', convoCallback, {
+        channel: eachUser.id,
         key: 'obstacles',
         multiple: true
       });
 
-      convo.say('Great! Thanks ' + currentUser.name + '!');
+      convo.say('Great! Thanks ' + eachUser.name + '!');
 
       convo.on('end', function(convo) {
         if (convo.status === 'completed') {
@@ -117,11 +135,11 @@ module.exports.use = function(controller) {
             yesterday: convo.extractResponse('yesterday'),
             today: convo.extractResponse('today'),
             obstacles: convo.extractResponse('obstacles'),
-            user: currentUser
+            user: eachUser
           });
         }
 
-        return afterStatus(bot);
+        return afterStatus(bot, eachUser);
       });
 
       function convoCallback(response, convo) {
@@ -130,17 +148,20 @@ module.exports.use = function(controller) {
     });
   }
 
-  function afterStatus(bot) {
-    // get next user, if null summarize
-    if (userIterator.hasNext()) {
-      currentUser = userIterator.next();
-      promptUser(bot);
-      return q();
-    } else {
-      standupHappening = false;
-      readyForNextStatus = false;
-      return summarizeStandup(bot);
-    }
+  function afterStatus(bot, eachUser) {
+    var errConfig = {channel: standupChannel, text: 'Error showing status for ' + eachUser.name};
+    standupModel.addResponsiveUser(eachUser);
+    return standupModel.summarizeUser(eachUser.name)
+        .then(function() {
+          if (getSilentUsers().length === 0) {
+            endStandup(bot);
+          }
+        })
+        .fail(function(err) {
+          console.log(err);
+          bot.say({text: 'error showing your status!', channel: eachUser.id});
+          return bot.say(errConfig);
+        });
   }
 
   function summarizeStandup(bot) {
@@ -156,5 +177,42 @@ module.exports.use = function(controller) {
         sayConfig.text += ' I had a problem saving the summary though, sorry about that :grimacing:';
         return bot.say(sayConfig);
       });
+  }
+
+  function getSilentUsers() {
+    var silentUsers = []
+      , eachUser
+      , userIterator;
+    userIterator = usersModel.iterator();
+    while (userIterator.hasNext()) {
+      eachUser = userIterator.next();
+      if (!standupModel.isResponsiveUser(eachUser)) {
+        silentUsers.push(eachUser.name);
+      }
+    }
+    return silentUsers;
+  }
+
+  function endStandup(bot, message) {
+    var silentUsers = getSilentUsers();
+
+    // if someone tried to end it with no actual SU going on
+    if (!standupHappening && message) {
+      return bot.reply(message, 'Standup is already over! Start another one with `start`');
+    }
+
+    if (silentUsers.length > 0) {
+      bot.say({ text: 'The following users have not checked in, their input ' +
+                      'will be logged, but will not be in the report: ' + silentUsers,
+                channel: standupModel.getSummaryChannel()});
+    }
+
+    standupHappening = false;
+
+    bot.say({ text: 'Standup is over!',
+              channel: standupModel.getSummaryChannel()});
+    summarizeStandup(bot);
+    standupModel.clearStatuses();
+    standupModel.clearResponsiveUsers();
   }
 };

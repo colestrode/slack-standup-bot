@@ -1,5 +1,5 @@
 module.exports.use = function(controller) {
-  controller.hears('help', 'direct_mention', function(bot, message) {
+  controller.hears('help', ['direct_message', 'direct_mention'], function(bot, message) {
     var botName = '@' + bot.identity.name
       , helpMessage;
 
@@ -13,13 +13,15 @@ module.exports.use = function(controller) {
       '`' + botName + ' end`: End an stand up in progress. This is only if you want to end early, stand ups will end on their own once everyone has reported.\n' +
       '`' + botName + ' report in #channel`: Set a channel for me to post stand up reports in. By default I\'ll use the channel the stand up started in. You only have to tell me once, I have a pretty good memory.\n' +
       '`' + botName + ' where do you report?`: I\'ll tell you where I\'ll post summary reports to.\n' +
-      '`skip`: Use this during a stand up to skip a user.\n' +
+      '`' + botName + ' report`: I\'ll post a summary of the statuses handed in so far, as well as a list of who hasn\'t responded\n' +
+      '`' + botName + ' remind`: I\'ll send a quick message to everyone who hasn\'t responded telling them to check in\n' +
       '\n' +
       '_Adding and removing members:_\n' +
       '`' + botName + ' members`: Lists the current members of the team.\n' +
       '`' + botName + ' join`: Adds you to the team.\n' +
       '`' + botName + ' leave`: Removes you from the team.\n' +
       '`' + botName + ' remove @user`: Removes another user from the team.\n' +
+      '`' + botName + ' add @user`: Adds another user to the team.\n' +
       '';
 
     bot.reply(message, helpMessage);

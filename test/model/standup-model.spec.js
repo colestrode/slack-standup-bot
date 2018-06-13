@@ -65,7 +65,7 @@ describe('Standup Model', function() {
           throw new Error('should have failed');
         })
         .fail(function(e) {
-          expect(botController.storage.teams.get).to.have.been.calledWith('summarychannel');
+          expect(botController.storage.teams.get).to.have.been.calledWith('statuses');
           expect(e).to.equal(err);
         });
     });
@@ -117,14 +117,25 @@ describe('Standup Model', function() {
   });
 
   describe('Status', function() {
+    beforeEach(function() {
+      return StandupModel.init(botController, botMock)
+        .then(function() {
+          botController.storage.teams.get.reset();
+          botController.storage.teams.save.reset();
+        });
+    });
+
     it('should return empty array when not statuses have been added', function() {
       expect(StandupModel.getStatuses()).to.deep.equal([]);
     });
 
-    it('should add and return status that has been added', function() {
+    it('should add a status to DB', function() {
       var status = {hi: 'there'};
-      StandupModel.addStatus(status);
-      expect(StandupModel.getStatuses()).to.deep.equal([status]);
+      return StandupModel.addStatus(status)
+        .then(function() {
+          expect(botController.storage.teams.save).to.have.been.called;
+          expect(botController.storage.teams.save).to.have.been.calledWithMatch({id: 'statuses', statuses: [status]});
+        });
     });
 
     it('should remove any added statuses', function() {
@@ -132,11 +143,62 @@ describe('Standup Model', function() {
       StandupModel.addStatus(status);
       expect(StandupModel.getStatuses()).to.deep.equal([status]);
 
-      StandupModel.clearStatuses();
-      expect(StandupModel.getStatuses()).to.deep.equal([]);
+      return StandupModel.clearStatuses()
+        .then(function() {
+          expect(StandupModel.getStatuses()).to.deep.equal([]);
+          expect(botController.storage.teams.save).to.have.been.calledWith({id: 'statuses', statuses: []});
+        });
     });
   });
 
+  describe('loadStatuses', function() {
+
+    it('should load statuses from the DB on init', function() {
+      botController.storage.teams.get.yields(null, {statuses: ['foo']});
+      return StandupModel.init(botController, botMock)
+        .then(function() {
+          expect(botController.storage.teams.get).to.have.been.calledWith('statuses');
+          expect(StandupModel.getStatuses()).to.deep.equal(['foo']);
+        });
+    });
+  });
+
+  describe('responsiveUsers', function() {
+    it('should load responsive users on init', function() {
+      botController.storage.teams.get.yields(null, {responsiveUsers: ['foo']});
+      return StandupModel.init(botController, botMock)
+        .then(function() {
+          expect(botController.storage.teams.get).to.have.been.calledWith('responsiveUsers');
+          expect(StandupModel.getResponsiveUsers()).to.deep.equal(['foo']);
+        });
+    });
+
+    it('should test existence', function() {
+      return StandupModel.init(botController, botMock)
+        .then(function() {
+          StandupModel.addResponsiveUser({name: 'test'})
+            .then(function() {
+              expect(botController.storage.teams.save).to.have.been.calledWith({id: 'responsiveUsers', responsiveUsers: ['test']});
+              expect(StandupModel.isResponsiveUser({name: 'test'})).to.equal(true);
+              expect(StandupModel.getResponsiveUsers()).to.deep.equal(['test']);
+            });
+        });
+    });
+
+    it('should support emptying out the responsiveUsers array', function() {
+      return StandupModel.init(botController, botMock)
+        .then(function() {
+          StandupModel.addResponsiveUser({name: 'test'});
+          expect(StandupModel.isResponsiveUser({name: 'test'})).to.equal(true);
+          expect(StandupModel.getResponsiveUsers().length).to.equal(1);
+
+          StandupModel.clearResponsiveUsers();
+          expect(StandupModel.isResponsiveUser({name: 'test'})).to.equal(false);
+          expect(StandupModel.getResponsiveUsers.length).to.equal(0);
+        });
+
+    });
+  });
   describe('summarize', function() {
     var title;
 
@@ -158,8 +220,6 @@ describe('Standup Model', function() {
       };
       StandupModel.addStatus(status);
 
-      sinon.spy(StandupModel, 'clearStatuses');
-
       return StandupModel.summarize()
         .then(function() {
           expect(botMock.api.files.upload).to.have.been.calledOnce;
@@ -169,7 +229,6 @@ describe('Standup Model', function() {
             title: title,
             channels: 'superlab'
           });
-          expect(StandupModel.clearStatuses).to.have.been.called;
         });
     });
 
@@ -188,8 +247,6 @@ describe('Standup Model', function() {
         obstacles: 'walter'
       });
 
-      sinon.spy(StandupModel, 'clearStatuses');
-
       return StandupModel.summarize()
         .then(function() {
           expect(botMock.api.files.upload).to.have.been.calledTwice;
@@ -205,8 +262,6 @@ describe('Standup Model', function() {
             title: title + ' (2 of 2)',
             channels: 'superlab'
           });
-
-          expect(StandupModel.clearStatuses).to.have.been.called;
         });
     });
 
@@ -239,7 +294,6 @@ describe('Standup Model', function() {
 
       StandupModel.addStatus(status);
 
-      sinon.spy(StandupModel, 'clearStatuses');
       botMock.api.files.upload.yields(error);
 
       return StandupModel.summarize()
@@ -248,7 +302,6 @@ describe('Standup Model', function() {
         })
         .fail(function(err) {
           expect(err.message).to.equal('DINGDINGBOOM');
-          expect(StandupModel.clearStatuses).to.have.been.called;
         });
     });
   });

@@ -1,0 +1,87 @@
+#!/bin/sh
+#
+# chkconfig: 35 99 99
+
+# description: slack-standup-bot init.d script
+#
+
+. /etc/rc.d/init.d/functions
+
+USER="root"
+
+NODE="/opt/msys/3rdParty/bin/node"
+ROOT_DIR="/opt/msys/slack-standup-bot"
+FOREVER="$ROOT_DIR/node_modules/forever/bin/forever"
+DAEMON="$NODE $FOREVER"
+
+SERVER="index.js"
+SERVER_DESC="Slack Standup Bot Process"
+
+LOG_FILE="/var/log/msys-nodejs/slack-standup-bot.js.log"
+PID_FILE="/var/run/msys-app/slack-standup-bot.pid"
+
+FOREVER_START_ARGS="-al $LOG_FILE --pidFile $PID_FILE --minUptime 1000 --spinSleepTime 1000 --uid $USER --workingDir $ROOT_DIR"
+
+
+RETVAL=0
+NODE_ENV="production"
+
+start()
+{
+    if [ ! -f "$PID_FILE" ] ; then
+        echo -n $"Starting $SERVER_DESC: "
+        NODE_CONFIG_DIR=$ROOT_DIR/config NODE_ENV=$NODE_ENV $DAEMON $FOREVER_START_ARGS start $ROOT_DIR/$SERVER &> /dev/null && echo_success || echo_failure
+        RETVAL=$?
+        echo
+    else
+       echo "$SERVER_DESC is already started."
+       RETVAL=1
+    fi
+}
+stop()
+{
+    if [ -f "$PID_FILE" ] ; then
+        echo -n "Shutting down $SERVER_DESC: "
+        $DAEMON stop $ROOT_DIR/$SERVER &> /dev/null  && echo_success || echo_failure
+        rm -f $PID_FILE
+
+        RETVAL=$?
+        echo
+      else
+        $DAEMON stop $ROOT_DIR/$SERVER &> /dev/null
+        echo "$SERVER_DESC is already stopped."
+        RETVAL=1
+      fi
+}
+
+status() {
+  if [ -f "$PID_FILE" ] ; then
+    echo "$SERVER_DESC is running"
+    $DAEMON list
+    RETVAL=$?
+  else
+    echo "$SERVER_DESC is stopped"
+    RETVAL=1
+  fi
+}
+
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    restart)
+        stop
+        start
+        ;;
+    status)
+        status
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|restart|status}"
+        RETVAL=1
+esac
+
+exit $RETVAL

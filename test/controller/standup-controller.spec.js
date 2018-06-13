@@ -17,6 +17,7 @@ describe('Standup Controller', function() {
     , convoMock
     , user
     , userIterator
+    , hasNextCallback
     , standupController;
 
   beforeEach(function() {
@@ -31,6 +32,7 @@ describe('Standup Controller', function() {
     botMock = {
       reply: sinon.stub(),
       startConversation: sinon.stub().returns(convoMock),
+      startPrivateConversation: sinon.stub().returns(convoMock),
       say: sinon.stub(),
       utterances: {yes: /yes/, no: /no/}
     };
@@ -41,8 +43,11 @@ describe('Standup Controller', function() {
 
     user = {name: 'heisenberg', id: 'walterwhite'};
 
+    hasNextCallback = sinon.stub();
+    hasNextCallback.onFirstCall().returns(true);
+    hasNextCallback.onSecondCall().returns(false);
     userIterator = {
-      hasNext: sinon.stub().returns(true),
+      hasNext: hasNextCallback,
       next: sinon.stub().returns(user)
     };
 
@@ -55,9 +60,17 @@ describe('Standup Controller', function() {
       getSummaryChannel: sinon.stub().returns('Netflix'),
       setSummaryChannel: sinon.stub(),
       addStatus: sinon.stub(),
+      getStatuses: sinon.stub(),
       clearStatuses: sinon.stub(),
-      summarize: sinon.stub().returns(q())
+      summarizeUser: sinon.stub().returns(q()),
+      summarize: sinon.stub().returns(q()),
+      addResponsiveUser: sinon.stub().returns(q()),
+      getResponsiveUsers: sinon.stub().returns([user]),
+      isResponsiveUser: sinon.stub().returns(false),
+      clearResponsiveUsers: sinon.stub()
     };
+
+    standupModelMock.getStatuses.returns([]);
 
     standupController = proxyquire('../../src/controller/standup-controller', {
       '../model/users-model': usersModelMock,
@@ -75,6 +88,11 @@ describe('Standup Controller', function() {
     });
   });
 
+  it('should check statuses while setting up', function() {
+    standupController.use(botController);
+    expect(standupModelMock.getStatuses).to.have.been.called;
+  });
+
   describe('hears', function() {
     var hearsMap
       , messageMock;
@@ -89,6 +107,94 @@ describe('Standup Controller', function() {
       };
     });
 
+    describe('remind silent users', function() {
+      var remindCallback
+      , startCallback
+      , convoCallback;
+
+      beforeEach(function() {
+        remindCallback = _.find(hearsMap, function(val, key) {
+          return /^remind$/.test(key);
+        });
+
+        startCallback = _.find(hearsMap, function(val, key) {
+          return /^start$/.test(key);
+        });
+
+        expect(remindCallback).to.exist;
+        expect(startCallback).to.exist;
+      });
+
+      it('should pester silent users', function() {
+        // make it so there are more regular users
+        usersModelMock.list.returns([user, user]);
+        startCallback(botMock, messageMock);
+        hasNextCallback.reset();
+        remindCallback(botMock, messageMock);
+        expect(botMock.startPrivateConversation.callCount).to.equal(2);
+        convoCallback = botMock.startPrivateConversation.secondCall.args[1];
+        convoCallback(null, convoMock);
+        expect(convoMock.say).to.have.been.calledWithMatch(/Please check in.*/);
+      });
+
+      it('should not pester users who already responded', function() {
+        startCallback(botMock, messageMock);
+        hasNextCallback.reset();
+        // sneak in a fake user so they don't show up in silentUsers, making them seem like
+        // they've responded
+        userIterator.next.returns({name: 'test', id: 'id'});
+        botMock.startPrivateConversation.reset();
+        remindCallback(botMock, messageMock);
+        expect(botMock.startPrivateConversation).to.not.have.been.called;
+      });
+
+      it('should not remind anyone if there\'s no standup', function() {
+        remindCallback(botMock, messageMock);
+        expect(botMock.reply).to.have.been.calledWithMatch(messageMock, /.*no standup.*/);
+        expect(botMock.startPrivateConversation.callCount).to.equal(0);
+      });
+
+      it('should not bother reminding people if everyone\'s responded', function() {
+        startCallback(botMock, messageMock);
+        hasNextCallback.reset();
+        remindCallback(botMock, messageMock);
+        expect(botMock.reply).to.have.been.calledWithMatch(messageMock, /.*everyone seems to have responded.*/);
+        expect(hasNextCallback).to.not.have.been.called;
+      });
+
+    });
+    describe('generate report', function() {
+      var reportCallback
+      , startCallback;
+
+      beforeEach(function() {
+        reportCallback = _.find(hearsMap, function(val, key) {
+          return /^report$/.test(key);
+        });
+
+        startCallback = _.find(hearsMap, function(val, key) {
+          return /^start$/.test(key);
+        });
+
+        expect(reportCallback).to.exist;
+        expect(startCallback).to.exist;
+      });
+
+      it('should complain when called on to report without a standup', function() {
+        reportCallback(botMock, messageMock);
+        expect(botMock.reply).to.have.been.calledWithMatch(messageMock, /no standup/);
+        expect(standupModelMock.summarize).not.to.have.been.called;
+      });
+
+      it('should summarize and print silent users', function() {
+        startCallback(botMock, messageMock);
+        hasNextCallback.reset();
+        reportCallback(botMock, messageMock);
+        expect(standupModelMock.summarize).to.have.been.called;
+        expect(botMock.reply).to.have.been.calledWithMatch(messageMock, new RegExp(messageMock.user));
+      });
+    });
+
     describe('start standup', function() {
       var callback;
 
@@ -101,22 +207,15 @@ describe('Standup Controller', function() {
       });
 
       it('should start a standup', function() {
-        var sayArgs;
-
         callback(botMock, messageMock);
 
         expect(botMock.reply).to.have.been.calledWithMatch(messageMock, /^Alright!/);
+        expect(standupModelMock.getStatuses).to.have.been.called;
         expect(standupModelMock.getSummaryChannel).to.have.been.called;
         expect(standupModelMock.setSummaryChannel).not.to.have.been.called;
         expect(usersModelMock.list).to.have.been.called;
         expect(usersModelMock.iterator).to.have.been.called;
         expect(userIterator.next).to.have.been.called;
-        expect(botMock.reply).to.have.been.calledWithMatch(messageMock, /Alright/);
-        expect(botMock.say).to.have.been.called;
-
-        sayArgs = botMock.say.firstCall.args[0];
-        expect(sayArgs.text).to.match(new RegExp(messageMock.user.id));
-        expect(sayArgs.channel).to.match(new RegExp(messageMock.channel));
       });
 
       it('should set a summary channel if one is not already set', function() {
@@ -127,6 +226,15 @@ describe('Standup Controller', function() {
         expect(botMock.reply).to.have.been.calledWithMatch(messageMock, /^Alright!/);
         expect(standupModelMock.getSummaryChannel).to.have.been.called;
         expect(standupModelMock.setSummaryChannel).to.have.been.calledWith(messageMock.channel);
+      });
+
+      it('should not start if a standup is there are pre-existing statuses', function() {
+        // trigger the code to toggle whether a standup is happening based on
+        // existing statuses
+        standupModelMock.getStatuses.returns(['test']);
+        standupController.use(botController);
+        callback(botMock, messageMock);
+        expect(botMock.reply).to.have.been.calledWithMatch(messageMock, /^Standup has already started!/);
       });
 
       it('should not start if a standup is in progress', function() {
@@ -178,14 +286,16 @@ describe('Standup Controller', function() {
         expect(endCallback).to.exist;
       });
 
-      it('should end an ongoing standup', function() {
+      it('should end an ongoing standup with users who haven\'t responded', function() {
         startCallback(botMock, messageMock);
         botMock.reply.reset();
-        botMock.startConversation.reset();
-
+        hasNextCallback.reset();
         endCallback(botMock, messageMock);
-        expect(botMock.reply).to.have.been.calledWithMatch(messageMock, /Standup is over/);
-        expect(botMock.startConversation).to.have.been.calledWith(messageMock);
+        // verify that since no users responded, this information is printed out on completion
+        expect(botMock.say.firstCall.args[0].text).to.match(new RegExp(messageMock.user));
+        expect(botMock.say.secondCall.args[0].text).to.match(/Standup is over/);
+        expect(standupModelMock.summarize).to.have.been.called;
+        expect(standupModelMock.clearStatuses).to.have.been.called;
       });
 
       it('should not end if a standup has not started', function() {
@@ -193,99 +303,11 @@ describe('Standup Controller', function() {
         expect(botMock.reply).to.have.been.calledWithMatch(messageMock, /Standup is already over/);
         expect(botMock.startConversation).not.to.have.been.called;
       });
-
-      describe('conversation', function() {
-        var convoCallback;
-
-        beforeEach(function() {
-          startCallback(botMock, messageMock);
-          endCallback(botMock, messageMock);
-          convoCallback = botMock.startConversation.args[0][1];
-
-          standupModelMock.getSummaryChannel.reset();
-
-          sinon.spy(console, 'log');
-        });
-
-        afterEach(function() {
-          console.log.restore();
-        });
-
-        it('should set up the conversation', function() {
-          convoCallback(null, convoMock);
-
-          expect(convoMock.ask).to.have.been.calledWithMatch(new RegExp(messageMock.user));
-          expect(convoMock.ask.args[0][1]).to.be.an('Array');
-          expect(convoMock.ask.args[0][1]).to.have.length(2);
-        });
-
-        it('should summarize the standup if told to', function() {
-          var yesCfg;
-
-          convoCallback(null, convoMock);
-
-          yesCfg = convoMock.ask.args[0][1][0];
-          expect(yesCfg.pattern).to.equal(botMock.utterances.yes);
-
-          botMock.say.reset();
-          return yesCfg.callback({}, convoMock)
-            .then(function() {
-              expect(standupModelMock.summarize).to.have.been.called;
-              expect(standupModelMock.getSummaryChannel).to.have.been.called;
-              expect(botMock.say).to.have.been.called;
-              expect(botMock.say.args[0][0].channel).to.equal(messageMock.channel);
-              expect(botMock.say.args[0][0].text).to.match(new RegExp('You can find a summary in'));
-              expect(convoMock.next).to.have.been.called;
-            });
-        });
-
-        it('should handle an error summarizing a standup', function() {
-          var yesCfg
-            , error = new Error('GUSFRING');
-
-          convoCallback(null, convoMock);
-          yesCfg = convoMock.ask.args[0][1][0];
-          botMock.say.reset();
-
-          standupModelMock.summarize.returns(q.reject(error));
-
-          return yesCfg.callback({}, convoMock)
-            .then(function() {
-              expect(standupModelMock.summarize).to.have.been.called;
-              expect(standupModelMock.getSummaryChannel).not.to.have.been.called;
-              expect(console.log).to.have.been.calledWith(error);
-              expect(botMock.say).to.have.been.called;
-              expect(botMock.say.args[0][0].channel).to.equal(messageMock.channel);
-              expect(botMock.say.args[0][0].text).to.match(new RegExp('I had a problem saving'));
-              expect(convoMock.next).to.have.been.called;
-            });
-        });
-
-        it('should clear statuses if no summary is needed', function() {
-          var noCfg;
-
-          convoCallback(null, convoMock);
-
-          noCfg = convoMock.ask.args[0][1][1];
-          expect(noCfg.pattern).to.equal(botMock.utterances.no);
-
-          botMock.say.reset();
-          noCfg.callback({}, convoMock);
-
-          expect(standupModelMock.summarize).not.to.have.been.called;
-          expect(standupModelMock.clearStatuses).to.have.been.called;
-          expect(botMock.say).to.have.been.called;
-          expect(botMock.say.args[0][0].channel).to.equal(messageMock.channel);
-          expect(botMock.say.args[0][0].text).to.match(new RegExp('Come again soon'));
-          expect(convoMock.next).to.have.been.called;
-        });
-      });
     });
 
     describe('start check-in', function() {
       var startCallback
-        , endCallback
-        , yesCallback;
+        , endCallback;
 
       beforeEach(function() {
         startCallback = _.find(hearsMap, function(val, key) {
@@ -296,48 +318,30 @@ describe('Standup Controller', function() {
           return /^end/.test(key);
         });
 
-        yesCallback = _.find(hearsMap, function(val, key) {
-          return /^yes/.test(key);
-        });
-
         expect(startCallback).to.exist;
         expect(endCallback).to.exist;
-        expect(yesCallback).to.exist;
+        hasNextCallback.reset();
+      });
+      it('should prompt multiple users', function() {
+        hasNextCallback.onFirstCall().returns(true);
+        hasNextCallback.onSecondCall().returns(true);
+        hasNextCallback.onThirdCall().returns(false);
+        botMock.startPrivateConversation.reset();
+        startCallback(botMock, messageMock);
+        // the hackery above will cause two users to be output to the start function
+        // the expectation is that a conversation will be started with both of them
+        // simultaneously
+        expect(botMock.startPrivateConversation.callCount).to.equal(2);
       });
 
-      it('should do nothing if not ready for status', function() {
-        startCallback(botMock, messageMock); // sets current user
-        endCallback(botMock, messageMock); // ends standup, readyForNextStatus is false
-
-        botMock.startConversation.reset();
-        yesCallback(botMock, messageMock);
-
-        expect(botMock.startConversation).not.to.have.been.called;
-      });
-
-      it('should do nothing if response from other user', function() {
-        messageMock.user = 'capncook';
-        startCallback(botMock, messageMock); // sets current user
-
-        botMock.startConversation.reset();
-        yesCallback(botMock, messageMock);
-
-        expect(botMock.startConversation).not.to.have.been.called;
-      });
-
-      it('should gather status from current user', function() {
+      it('should gather status', function() {
         var convoCallback;
 
-        messageMock.user = 'walterwhite';
-        startCallback(botMock, messageMock); // sets current user
-
-        botMock.startConversation.reset();
-        yesCallback(botMock, messageMock);
-
-        expect(botMock.startConversation).to.have.been.calledWith(messageMock);
+        botMock.startPrivateConversation.reset();
+        startCallback(botMock, messageMock);
 
         // test convo callback
-        convoCallback = botMock.startConversation.firstCall.args[1];
+        convoCallback = botMock.startPrivateConversation.firstCall.args[1];
         convoCallback(null, convoMock);
 
         expect(convoMock.ask.callCount).to.equal(3);
@@ -356,57 +360,60 @@ describe('Standup Controller', function() {
 
         beforeEach(function() {
           messageMock.user = 'walterwhite';
-          startCallback(botMock, messageMock); // sets current user
+          messageMock.channel = 'walterwhite';
+          botMock.startPrivateConversation.reset();
+          startCallback(botMock, messageMock);
+          hasNextCallback.reset();
 
-          botMock.startConversation.reset();
-          yesCallback(botMock, messageMock);
-          botMock.startConversation.firstCall.args[1](null, convoMock);
+          botMock.startPrivateConversation.firstCall.args[1](null, convoMock);
 
           onEnd = convoMock.on.args[0][1];
           expect(onEnd).to.exist;
         });
 
-        it('should add status if convo is completed', function() {
+        it('should add status if private convo is completed', function() {
           convoMock.status = 'completed';
-          userIterator.hasNext.returns(true);
-          standupModelMock.summarize.reset();
+          standupModelMock.summarizeUser.reset();
+          standupModelMock.isResponsiveUser.returns(false);
 
           return onEnd(convoMock)
             .then(function() {
               expect(standupModelMock.addStatus).to.have.been.called;
-              expect(standupModelMock.summarize).not.to.have.been.called;
+              expect(standupModelMock.summarizeUser).to.have.been.called;
 
-              expect(botMock.say).to.have.been.called;
-              expect(botMock.say.args[1][0].text).to.match(/are you ready/);
-              expect(botMock.say.args[1][0].channel).to.equal(messageMock.channel);
+              expect(botMock.say).not.to.have.been.called;
             });
         });
 
-        it('should summarize standup if there are no other users', function() {
+        it('should end standup if everyone is done', function() {
           convoMock.status = 'completed';
-          userIterator.hasNext.returns(false);
+          standupModelMock.summarizeUser.reset();
+          standupModelMock.isResponsiveUser.returns(true);
 
           return onEnd(convoMock)
             .then(function() {
+              // make sure we do our regular status update
               expect(standupModelMock.addStatus).to.have.been.called;
-              expect(standupModelMock.summarize).to.have.been.called;
+              expect(standupModelMock.summarizeUser).to.have.been.called;
 
-              expect(botMock.say).to.have.been.called;
-              expect(botMock.say.args[1][0].text).to.match(/You can find a summary/);
-              expect(botMock.say.args[1][0].channel).to.equal(messageMock.channel);
+              // now the standup ending
+              // note that we only expect one call to 'say' since there aren't any silent users
+              expect(botMock.say.firstCall.args[0].text).to.match(/Standup is over/);
+              expect(standupModelMock.clearStatuses).to.have.been.called;
+              expect(standupModelMock.summarize).to.have.been.called;
             });
         });
 
         it('should handle an error summarizing', function() {
           convoMock.status = 'completed';
           userIterator.hasNext.returns(false);
-          standupModelMock.summarize.returns(q.reject(new Error('GUSFRING')));
+          standupModelMock.summarizeUser.returns(q.reject(new Error('GUSFRING')));
 
           return onEnd(convoMock).then(function() {
-            expect(standupModelMock.summarize).to.have.been.called;
+            expect(standupModelMock.summarizeUser).to.have.been.called;
 
             expect(botMock.say).to.have.been.called;
-            expect(botMock.say.args[1][0].text).to.match(/I had a problem saving/);
+            expect(botMock.say.args[1][0].text).to.match(/Error showing status/);
             expect(botMock.say.args[1][0].channel).to.equal(messageMock.channel);
           });
         });
@@ -421,102 +428,5 @@ describe('Standup Controller', function() {
       });
     });
 
-    describe('skip', function() {
-      var startCallback
-        , endCallback
-        , noCallback;
-
-      beforeEach(function() {
-        startCallback = _.find(hearsMap, function(val, key) {
-          return /^start$/.test(key);
-        });
-
-        endCallback = _.find(hearsMap, function(val, key) {
-          return /^end/.test(key);
-        });
-
-        noCallback = _.find(hearsMap, function(val, key) {
-          return /^skip/.test(key);
-        });
-
-        expect(startCallback).to.exist;
-        expect(endCallback).to.exist;
-        expect(noCallback).to.exist;
-      });
-
-      it('should do nothing if not ready for a status', function() {
-        return noCallback(botMock, messageMock)
-          .then(function() {
-            expect(botMock.reply).not.to.have.been.called;
-            expect(botMock.say).not.to.have.been.called;
-            expect(standupModelMock.summarize).not.to.have.been.called;
-          });
-      });
-
-      it('should let current user skip', function() {
-        messageMock.user = 'walterwhite';
-        startCallback(botMock, messageMock);
-        botMock.say.reset();
-
-        return noCallback(botMock, messageMock)
-          .then(function() {
-            expect(botMock.reply).to.have.been.calledWithMatch(messageMock, /Skipping/);
-            expect(botMock.say).to.have.been.called;
-            expect(botMock.say.args[0][0].text).to.match(/are you ready/);
-            expect(botMock.say.args[0][0].channel).to.equal(messageMock.channel);
-            expect(standupModelMock.summarize).not.to.have.been.called;
-          });
-      });
-
-      it('should let any user skip', function() {
-        messageMock.user = 'capncook';
-        startCallback(botMock, messageMock); // sets current user
-        botMock.say.reset();
-
-        return noCallback(botMock, messageMock)
-          .then(function() {
-            expect(botMock.reply).to.have.been.calledWithMatch(messageMock, /Skipping/);
-            expect(botMock.say).to.have.been.called;
-            expect(botMock.say.args[0][0].text).to.match(/are you ready/);
-            expect(botMock.say.args[0][0].channel).to.equal(messageMock.channel);
-            expect(standupModelMock.summarize).not.to.have.been.called;
-          });
-      });
-
-      it('should summarize standup if no more users', function() {
-        messageMock.user = 'walterwhite';
-        startCallback(botMock, messageMock);
-        botMock.say.reset();
-
-        userIterator.hasNext.returns(false);
-        return noCallback(botMock, messageMock)
-          .then(function() {
-            expect(botMock.reply).to.have.been.calledWithMatch(messageMock, /Skipping/);
-            expect(botMock.say).to.have.been.called;
-            expect(botMock.say.args[0][0].text).to.match(/You can find a summary/);
-            expect(botMock.say.args[0][0].channel).to.equal(messageMock.channel);
-            expect(standupModelMock.summarize).to.have.been.called;
-          });
-      });
-
-      it('should handle an error summarizing a standup', function() {
-        messageMock.user = 'walterwhite';
-        startCallback(botMock, messageMock);
-        botMock.say.reset();
-
-        userIterator.hasNext.returns(false);
-        standupModelMock.summarize.returns(q.reject(new Error('GUSFRING')));
-
-        return noCallback(botMock, messageMock)
-          .then(function() {
-            expect(botMock.reply).to.have.been.calledWithMatch(messageMock, /Skipping/);
-            expect(botMock.say).to.have.been.called;
-            expect(botMock.say.args[0][0].text).to.match(/I had a problem saving/);
-            expect(botMock.say.args[0][0].channel).to.equal(messageMock.channel);
-            expect(standupModelMock.summarize).to.have.been.called;
-          });
-
-      });
-    });
   });
 });

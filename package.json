@@ -31,7 +31,9 @@
   "dependencies": {
     "botkit": "0.2.2",
     "botkit-storage-redis": "^1.0.0",
+    "config": "^1.30.0",
     "express": "^4.13.3",
+    "forever": "^0.15.3",
     "lodash": "^4.13.0",
     "moment": "^2.15.1",
     "q": "^1.4.1",

@@ -53,6 +53,57 @@ describe('User Controller', function() {
       hearsMap = helpers.createHearsMap(botController);
     });
 
+    describe('add', function() {
+      var addCallback;
+
+      beforeEach(function() {
+        addCallback = _.find(hearsMap, function(val, key) {
+          return /add/.test(key);
+        });
+
+        sinon.spy(console, 'log');
+        expect(addCallback).to.exist;
+      });
+
+      afterEach(function() {
+        console.log.restore();
+      });
+
+      it('should add a user to the list in mid sentence tag', function() {
+        var message = {user: 'walterwhite', text: 'asdf @' + user.name + ' sadf'};
+
+        return addCallback(botMock, message)
+          .then(function() {
+            expect(usersModelMock.add).to.have.been.calledWith(user.name);
+            expect(console.log).not.to.have.been.called;
+            // really this is not testing anything we just did, this function is stubbed to always
+            // return user.name, but it's nice for completion's sake
+            expect(botMock.reply).to.have.been.calledWith(message, 'added ' + user.name + ' to the team!');
+          });
+      });
+
+      it('should fail to add an invalid user', function() {
+        var message = {user: 'walterwhite', text: 'asdf @' + user.name + ' sadf'};
+        usersModelMock.add.returns(helpers.resolves(null));
+
+        return addCallback(botMock, message)
+          .then(function() {
+            expect(usersModelMock.add).to.have.been.calledWith(user.name);
+            expect(botMock.reply).to.have.been.calledWith(message, user.name + ' does not seem to exist :confused:');
+          });
+      });
+
+      it('should fail to add invalid text', function() {
+        var message = {user: 'walterwhite', text: 'asdf sadf'};
+
+        return addCallback(botMock, message)
+          .then(function() {
+            expect(usersModelMock.add).to.not.have.been.called;
+            expect(botMock.reply).to.have.been.calledWith(message, 'I couldn\'t see a tagged user in "asdf sadf"');
+          });
+      });
+    });
+
     describe('join', function() {
       var joinCallback;
 
