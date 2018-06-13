@@ -8,6 +8,7 @@ var Botkit = require('botkit')
 
 // linter doesn't like that botkit isn't using camel case, sigh
 controller = Botkit.slackbot({
+  retry: 10,
   debug: false,
   json_file_store: config.JSON_FILE_STORE_PATH // jshint ignore:line
 });
@@ -36,6 +37,5 @@ controller.spawn({
 // this causes forever to kick the process when that happens.
 // It can also potentially cause logspam on shutdown, but it's worth it
 controller.on('rtm_close', function() {
-  console.log('Oh coconuts! The connection died');
-  process.exit(1);
+  console.log('Oh coconuts! The connection died, hope it reconnects!');
 });
